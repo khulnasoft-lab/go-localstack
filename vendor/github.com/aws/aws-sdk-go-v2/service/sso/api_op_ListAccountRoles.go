@@ -15,7 +15,8 @@ import (
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Lists all roles that are assigned to the user for a given AWS account.
+// Lists all roles that are assigned to the user for a given Amazon Web Services
+// account.
 func (c *Client) ListAccountRoles(ctx context.Context, params *ListAccountRolesInput, optFns ...func(*Options)) (*ListAccountRolesOutput, error) {
 	if params == nil {
 		params = &ListAccountRolesInput{}
@@ -40,7 +41,7 @@ type ListAccountRolesInput struct {
 	// This member is required.
 	AccessToken *string
 
-	// The identifier for the AWS account that is assigned to the user.
+	// The identifier for the Amazon Web Services account that is assigned to the user.
 	//
 	// This member is required.
 	AccountId *string

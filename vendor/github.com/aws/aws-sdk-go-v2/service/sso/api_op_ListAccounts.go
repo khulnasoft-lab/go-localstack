@@ -37,8 +37,9 @@ func (c *Client) ListAccounts(ctx context.Context, params *ListAccountsInput, op
 type ListAccountsInput struct {
 
 	// The token issued by the CreateToken API call. For more information, see
-	// CreateToken (https://docs.aws.amazon.com/singlesignon/latest/OIDCAPIReference/API_CreateToken.html)
-	// in the IAM Identity Center OIDC API Reference Guide.
+	// CreateToken
+	// (https://docs.aws.amazon.com/singlesignon/latest/OIDCAPIReference/API_CreateToken.html)
+	// in the AWS SSO OIDC API Reference Guide.
 	//
 	// This member is required.
 	AccessToken *string

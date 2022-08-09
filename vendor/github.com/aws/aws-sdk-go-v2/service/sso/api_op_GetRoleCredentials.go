@@ -41,7 +41,7 @@ type GetRoleCredentialsInput struct {
 	// This member is required.
 	AccessToken *string
 
-	// The identifier for the AWS account that is assigned to the user.
+	// The identifier for the Amazon Web Services account that is assigned to the user.
 	//
 	// This member is required.
 	AccountId *string
