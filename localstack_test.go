@@ -18,13 +18,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/filters"
-	"github.com/moby/moby/client"
-	log "github.com/sirupsen/logrus"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"net"
 	"net/http"
 	"os"
@@ -33,7 +26,17 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/sqs"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/client"
 	"github.com/elgohr/go-localstack"
+	log "github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMain(m *testing.M) {
@@ -88,8 +91,6 @@ func TestWithTimeoutOnStartup(t *testing.T) {
 
 	cli, err := client.NewClientWithOpts(client.FromEnv)
 	require.NoError(t, err)
-	cli.NegotiateAPIVersion(ctx)
-
 	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{})
 	require.NoError(t, err)
 	for _, c := range containers {
@@ -109,7 +110,6 @@ func TestWithTimeoutAfterStartup(t *testing.T) {
 
 	cli, err := client.NewClientWithOpts(client.FromEnv)
 	require.NoError(t, err)
-	cli.NegotiateAPIVersion(ctx)
 	require.Eventually(t, func() bool {
 		containers, err := cli.ContainerList(ctx, types.ContainerListOptions{})
 		if !assert.NoError(t, err) {
@@ -153,9 +153,8 @@ func TestWithLabels(t *testing.T) {
 
 			cli, err := client.NewClientWithOpts()
 			require.NoError(t, err)
-			cli.NegotiateAPIVersion(ctx)
 
-			containers, err := cli.ContainerList(ctx, types.ContainerListOptions{All: true})
+			containers, err := cli.ContainerList(ctx, types.ContainerListOptions{All: true, Quiet: true})
 			require.NoError(t, err)
 
 			require.True(t, atLeastOneContainerMatchesLabels(s.labels, containers))
@@ -240,7 +239,7 @@ func TestLocalStackWithContext(t *testing.T) {
 		},
 	} {
 		t.Run(s.name, func(t *testing.T) {
-			ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 			defer cancel()
 			l, err := localstack.NewInstance(s.input...)
 			require.NoError(t, err)
@@ -255,7 +254,7 @@ func TestLocalStackWithIndividualServicesOnContext(t *testing.T) {
 	for service := range localstack.AvailableServices {
 		t.Run(service.Name, func(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-			l, err := localstack.NewInstance()
+			l, err := localstack.NewInstance([]localstack.InstanceOption{localstack.WithVersion("0.11.4")}...)
 			require.NoError(t, err)
 			require.NoError(t, l.StartWithContext(ctx, service))
 			for testService := range localstack.AvailableServices {
@@ -263,40 +262,15 @@ func TestLocalStackWithIndividualServicesOnContext(t *testing.T) {
 				if testService == service || testService == localstack.DynamoDB {
 					require.NoError(t, err, testService)
 					require.NoError(t, conn.Close())
+				} else if testService != localstack.FixedPort {
+					require.Error(t, err, testService)
 				}
 			}
 			cancel()
-
-			// wait until service was shutdown
 			require.Eventually(t, func() bool {
 				_, err := cl.Get(l.EndpointV2(service))
 				return err != nil
-			}, time.Minute, 300*time.Millisecond)
-		})
-	}
-}
-
-func TestLocalStackWithIndividualServices(t *testing.T) {
-	cl := http.Client{Timeout: time.Second}
-	for service := range localstack.AvailableServices {
-		t.Run(service.Name, func(t *testing.T) {
-			l, err := localstack.NewInstance()
-			require.NoError(t, err)
-			require.NoError(t, l.Start(service))
-			for testService := range localstack.AvailableServices {
-				conn, err := net.DialTimeout("tcp", strings.TrimPrefix(l.EndpointV2(testService), "http://"), time.Second)
-				if testService == service || testService == localstack.DynamoDB {
-					require.NoError(t, err, testService)
-					require.NoError(t, conn.Close())
-				}
-			}
-			assert.NoError(t, l.Stop())
-
-			// wait until service was shutdown
-			require.Eventually(t, func() bool {
-				_, err := cl.Get(l.EndpointV2(service))
-				return err != nil
-			}, time.Minute, 300*time.Millisecond)
+			}, time.Minute, time.Second)
 		})
 	}
 }
@@ -315,7 +289,7 @@ func TestInstanceStartedTwiceWithoutLeaking(t *testing.T) {
 }
 
 func TestContextInstanceStartedTwiceWithoutLeaking(t *testing.T) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), 40*time.Second)
 	defer cancel()
 	l, err := localstack.NewInstance()
 	require.NoError(t, err)
@@ -419,6 +393,39 @@ func TestWithClientFromEnv(t *testing.T) {
 	}
 }
 
+func TestWithInitScript(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+
+	initScriptsOpt, err := localstack.WithInitScriptMount("testdata/init-scripts", "Bootstrap Complete")
+	require.NoError(t, err)
+
+	l, err := localstack.NewInstance(initScriptsOpt)
+	require.NoError(t, err)
+	err = l.StartWithContext(ctx, localstack.SQS)
+	require.NoError(t, err)
+
+	cfg, err := config.LoadDefaultConfig(ctx,
+		config.WithRegion("eu-west-1"),
+		config.WithEndpointResolverWithOptions(aws.EndpointResolverWithOptionsFunc(func(_, _ string, _ ...interface{}) (aws.Endpoint, error) {
+			return aws.Endpoint{
+				PartitionID:       "aws",
+				URL:               l.EndpointV2(localstack.SQS),
+				SigningRegion:     "eu-west-1",
+				HostnameImmutable: true,
+			}, nil
+		})),
+		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider("dummy", "dummy", "dummy")),
+	)
+	require.NoError(t, err)
+
+	sqsSvc := sqs.NewFromConfig(cfg)
+	// check we have the 2 expected queues
+	queues, err := sqsSvc.ListQueues(ctx, &sqs.ListQueuesInput{})
+	require.NoError(t, err)
+	require.Len(t, queues.QueueUrls, 2)
+	cancel()
+}
+
 func havingOneEndpoint(t *testing.T, l *localstack.Instance) {
 	endpoints := map[string]struct{}{}
 	for service := range localstack.AvailableServices {
@@ -466,19 +473,16 @@ func matchesLabels(labels map[string]string, container types.Container) bool {
 }
 
 func clean() error {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	timeout := int(time.Second.Seconds())
+	timeout := time.Second
 	cli, err := client.NewClientWithOpts()
 	if err != nil {
 		return err
 	}
-	cli.NegotiateAPIVersion(ctx)
-
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	if list, err := cli.ContainerList(ctx, types.ContainerListOptions{All: true}); err == nil {
 		for _, l := range list {
-			if err := cli.ContainerStop(ctx, l.ID, container.StopOptions{Timeout: &timeout}); err != nil {
+			if err := cli.ContainerStop(ctx, l.ID, &timeout); err != nil {
 				log.Println(err)
 			}
 		}
