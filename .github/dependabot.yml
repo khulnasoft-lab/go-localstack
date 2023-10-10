@@ -3,17 +3,9 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "daily"
 
   - package-ecosystem: "gomod"
     directory: "/"
     schedule:
-      interval: "weekly"
-    groups:
-      aws-sdk:
-        patterns:
-          - "github.com/aws/*"
-      docker:
-        patterns:
-          - "github.com/docker/*"
-          - "github.com/moby/*"
+      interval: "daily"

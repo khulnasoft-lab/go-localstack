@@ -12,7 +12,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	v4Internal "github.com/aws/aws-sdk-go-v2/aws/signer/internal/v4"
-	internalauth "github.com/aws/aws-sdk-go-v2/internal/auth"
 	"github.com/aws/aws-sdk-go-v2/internal/sdk"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
@@ -83,7 +82,7 @@ func (m *dynamicPayloadSigningMiddleware) HandleBuild(
 	}
 
 	// if TLS is enabled, use unsigned payload when supported
-	if req.IsHTTPS() {
+	if strings.EqualFold(req.URL.Scheme, "https") {
 		return (&unsignedPayload{}).HandleBuild(ctx, in, next)
 	}
 
@@ -302,23 +301,11 @@ func (s *SignHTTPRequestMiddleware) HandleFinalize(ctx context.Context, in middl
 		return out, metadata, &SigningError{Err: fmt.Errorf("failed to retrieve credentials: %w", err)}
 	}
 
-	signerOptions := []func(o *SignerOptions){
+	err = s.signer.SignHTTP(ctx, credentials, req.Request, payloadHash, signingName, signingRegion, sdk.NowTime(),
 		func(o *SignerOptions) {
 			o.Logger = middleware.GetLogger(ctx)
 			o.LogSigning = s.logSigning
-		},
-	}
-
-	// existing DisableURIPathEscaping is equivalent in purpose
-	// to authentication scheme property DisableDoubleEncoding
-	disableDoubleEncoding, overridden := internalauth.GetDisableDoubleEncoding(ctx)
-	if overridden {
-		signerOptions = append(signerOptions, func(o *SignerOptions) {
-			o.DisableURIPathEscaping = disableDoubleEncoding
 		})
-	}
-
-	err = s.signer.SignHTTP(ctx, credentials, req.Request, payloadHash, signingName, signingRegion, sdk.NowTime(), signerOptions...)
 	if err != nil {
 		return out, metadata, &SigningError{Err: fmt.Errorf("failed to sign http request, %w", err)}
 	}
@@ -384,8 +371,13 @@ func haveCredentialProvider(p aws.CredentialsProvider) bool {
 	if p == nil {
 		return false
 	}
+	switch p.(type) {
+	case aws.AnonymousCredentials,
+		*aws.AnonymousCredentials:
+		return false
+	}
 
-	return !aws.IsCredentialsProvider(p, (*aws.AnonymousCredentials)(nil))
+	return true
 }
 
 type payloadHashKey struct{}

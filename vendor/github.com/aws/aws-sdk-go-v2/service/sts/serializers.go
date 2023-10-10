@@ -523,6 +523,9 @@ func (m *awsAwsquery_serializeOpGetSessionToken) HandleSerialize(ctx context.Con
 	return next.HandleSerialize(ctx, in)
 }
 func awsAwsquery_serializeDocumentPolicyDescriptorListType(v []types.PolicyDescriptorType, value query.Value) error {
+	if len(v) == 0 {
+		return nil
+	}
 	array := value.Array("member")
 
 	for i := range v {
@@ -546,35 +549,6 @@ func awsAwsquery_serializeDocumentPolicyDescriptorType(v *types.PolicyDescriptor
 	return nil
 }
 
-func awsAwsquery_serializeDocumentProvidedContext(v *types.ProvidedContext, value query.Value) error {
-	object := value.Object()
-	_ = object
-
-	if v.ContextAssertion != nil {
-		objectKey := object.Key("ContextAssertion")
-		objectKey.String(*v.ContextAssertion)
-	}
-
-	if v.ProviderArn != nil {
-		objectKey := object.Key("ProviderArn")
-		objectKey.String(*v.ProviderArn)
-	}
-
-	return nil
-}
-
-func awsAwsquery_serializeDocumentProvidedContextsListType(v []types.ProvidedContext, value query.Value) error {
-	array := value.Array("member")
-
-	for i := range v {
-		av := array.Value()
-		if err := awsAwsquery_serializeDocumentProvidedContext(&v[i], av); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func awsAwsquery_serializeDocumentTag(v *types.Tag, value query.Value) error {
 	object := value.Object()
 	_ = object
@@ -593,6 +567,9 @@ func awsAwsquery_serializeDocumentTag(v *types.Tag, value query.Value) error {
 }
 
 func awsAwsquery_serializeDocumentTagKeyListType(v []string, value query.Value) error {
+	if len(v) == 0 {
+		return nil
+	}
 	array := value.Array("member")
 
 	for i := range v {
@@ -603,6 +580,9 @@ func awsAwsquery_serializeDocumentTagKeyListType(v []string, value query.Value) 
 }
 
 func awsAwsquery_serializeDocumentTagListType(v []types.Tag, value query.Value) error {
+	if len(v) == 0 {
+		return nil
+	}
 	array := value.Array("member")
 
 	for i := range v {
@@ -636,13 +616,6 @@ func awsAwsquery_serializeOpDocumentAssumeRoleInput(v *AssumeRoleInput, value qu
 	if v.PolicyArns != nil {
 		objectKey := object.Key("PolicyArns")
 		if err := awsAwsquery_serializeDocumentPolicyDescriptorListType(v.PolicyArns, objectKey); err != nil {
-			return err
-		}
-	}
-
-	if v.ProvidedContexts != nil {
-		objectKey := object.Key("ProvidedContexts")
-		if err := awsAwsquery_serializeDocumentProvidedContextsListType(v.ProvidedContexts, objectKey); err != nil {
 			return err
 		}
 	}

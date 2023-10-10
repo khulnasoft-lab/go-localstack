@@ -6,18 +6,16 @@ import (
 	smithydocument "github.com/aws/smithy-go/document"
 )
 
-// Provides information about your Amazon Web Services account.
+// Provides information about your AWS account.
 type AccountInfo struct {
 
-	// The identifier of the Amazon Web Services account that is assigned to the user.
+	// The identifier of the AWS account that is assigned to the user.
 	AccountId *string
 
-	// The display name of the Amazon Web Services account that is assigned to the
-	// user.
+	// The display name of the AWS account that is assigned to the user.
 	AccountName *string
 
-	// The email address of the Amazon Web Services account that is assigned to the
-	// user.
+	// The email address of the AWS account that is assigned to the user.
 	EmailAddress *string
 
 	noSmithyDocumentSerde
@@ -28,7 +26,8 @@ type RoleCredentials struct {
 
 	// The identifier used for the temporary security credentials. For more
 	// information, see Using Temporary Security Credentials to Request Access to AWS
-	// Resources (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_use-resources.html)
+	// Resources
+	// (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_use-resources.html)
 	// in the AWS IAM User Guide.
 	AccessKeyId *string
 
@@ -53,7 +52,7 @@ type RoleCredentials struct {
 // Provides information about the role that is assigned to the user.
 type RoleInfo struct {
 
-	// The identifier of the Amazon Web Services account assigned to the user.
+	// The identifier of the AWS account assigned to the user.
 	AccountId *string
 
 	// The friendly name of the role that is assigned to the user.

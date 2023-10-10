@@ -31,9 +31,9 @@ const (
 	BackupStatusAvailable BackupStatus = "AVAILABLE"
 )
 
-// Values returns all known values for BackupStatus. Note that this can be
-// expanded in the future, and so it is only as up to date as the client. The
-// ordering of this slice is not guaranteed to be stable across updates.
+// Values returns all known values for BackupStatus. Note that this can be expanded
+// in the future, and so it is only as up to date as the client. The ordering of
+// this slice is not guaranteed to be stable across updates.
 func (BackupStatus) Values() []BackupStatus {
 	return []BackupStatus{
 		"CREATING",
@@ -288,9 +288,9 @@ const (
 	ExportFormatIon          ExportFormat = "ION"
 )
 
-// Values returns all known values for ExportFormat. Note that this can be
-// expanded in the future, and so it is only as up to date as the client. The
-// ordering of this slice is not guaranteed to be stable across updates.
+// Values returns all known values for ExportFormat. Note that this can be expanded
+// in the future, and so it is only as up to date as the client. The ordering of
+// this slice is not guaranteed to be stable across updates.
 func (ExportFormat) Values() []ExportFormat {
 	return []ExportFormat{
 		"DYNAMODB_JSON",
@@ -307,50 +307,14 @@ const (
 	ExportStatusFailed     ExportStatus = "FAILED"
 )
 
-// Values returns all known values for ExportStatus. Note that this can be
-// expanded in the future, and so it is only as up to date as the client. The
-// ordering of this slice is not guaranteed to be stable across updates.
+// Values returns all known values for ExportStatus. Note that this can be expanded
+// in the future, and so it is only as up to date as the client. The ordering of
+// this slice is not guaranteed to be stable across updates.
 func (ExportStatus) Values() []ExportStatus {
 	return []ExportStatus{
 		"IN_PROGRESS",
 		"COMPLETED",
 		"FAILED",
-	}
-}
-
-type ExportType string
-
-// Enum values for ExportType
-const (
-	ExportTypeFullExport        ExportType = "FULL_EXPORT"
-	ExportTypeIncrementalExport ExportType = "INCREMENTAL_EXPORT"
-)
-
-// Values returns all known values for ExportType. Note that this can be expanded
-// in the future, and so it is only as up to date as the client. The ordering of
-// this slice is not guaranteed to be stable across updates.
-func (ExportType) Values() []ExportType {
-	return []ExportType{
-		"FULL_EXPORT",
-		"INCREMENTAL_EXPORT",
-	}
-}
-
-type ExportViewType string
-
-// Enum values for ExportViewType
-const (
-	ExportViewTypeNewImage        ExportViewType = "NEW_IMAGE"
-	ExportViewTypeNewAndOldImages ExportViewType = "NEW_AND_OLD_IMAGES"
-)
-
-// Values returns all known values for ExportViewType. Note that this can be
-// expanded in the future, and so it is only as up to date as the client. The
-// ordering of this slice is not guaranteed to be stable across updates.
-func (ExportViewType) Values() []ExportViewType {
-	return []ExportViewType{
-		"NEW_IMAGE",
-		"NEW_AND_OLD_IMAGES",
 	}
 }
 
@@ -376,30 +340,6 @@ func (GlobalTableStatus) Values() []GlobalTableStatus {
 	}
 }
 
-type ImportStatus string
-
-// Enum values for ImportStatus
-const (
-	ImportStatusInProgress ImportStatus = "IN_PROGRESS"
-	ImportStatusCompleted  ImportStatus = "COMPLETED"
-	ImportStatusCancelling ImportStatus = "CANCELLING"
-	ImportStatusCancelled  ImportStatus = "CANCELLED"
-	ImportStatusFailed     ImportStatus = "FAILED"
-)
-
-// Values returns all known values for ImportStatus. Note that this can be
-// expanded in the future, and so it is only as up to date as the client. The
-// ordering of this slice is not guaranteed to be stable across updates.
-func (ImportStatus) Values() []ImportStatus {
-	return []ImportStatus{
-		"IN_PROGRESS",
-		"COMPLETED",
-		"CANCELLING",
-		"CANCELLED",
-		"FAILED",
-	}
-}
-
 type IndexStatus string
 
 // Enum values for IndexStatus
@@ -419,46 +359,6 @@ func (IndexStatus) Values() []IndexStatus {
 		"UPDATING",
 		"DELETING",
 		"ACTIVE",
-	}
-}
-
-type InputCompressionType string
-
-// Enum values for InputCompressionType
-const (
-	InputCompressionTypeGzip InputCompressionType = "GZIP"
-	InputCompressionTypeZstd InputCompressionType = "ZSTD"
-	InputCompressionTypeNone InputCompressionType = "NONE"
-)
-
-// Values returns all known values for InputCompressionType. Note that this can be
-// expanded in the future, and so it is only as up to date as the client. The
-// ordering of this slice is not guaranteed to be stable across updates.
-func (InputCompressionType) Values() []InputCompressionType {
-	return []InputCompressionType{
-		"GZIP",
-		"ZSTD",
-		"NONE",
-	}
-}
-
-type InputFormat string
-
-// Enum values for InputFormat
-const (
-	InputFormatDynamodbJson InputFormat = "DYNAMODB_JSON"
-	InputFormatIon          InputFormat = "ION"
-	InputFormatCsv          InputFormat = "CSV"
-)
-
-// Values returns all known values for InputFormat. Note that this can be expanded
-// in the future, and so it is only as up to date as the client. The ordering of
-// this slice is not guaranteed to be stable across updates.
-func (InputFormat) Values() []InputFormat {
-	return []InputFormat{
-		"DYNAMODB_JSON",
-		"ION",
-		"CSV",
 	}
 }
 
@@ -698,9 +598,9 @@ const (
 	SSEStatusUpdating  SSEStatus = "UPDATING"
 )
 
-// Values returns all known values for SSEStatus. Note that this can be expanded
-// in the future, and so it is only as up to date as the client. The ordering of
-// this slice is not guaranteed to be stable across updates.
+// Values returns all known values for SSEStatus. Note that this can be expanded in
+// the future, and so it is only as up to date as the client. The ordering of this
+// slice is not guaranteed to be stable across updates.
 func (SSEStatus) Values() []SSEStatus {
 	return []SSEStatus{
 		"ENABLING",
