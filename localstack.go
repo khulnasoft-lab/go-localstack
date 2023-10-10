@@ -21,6 +21,14 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"log"
+	"path/filepath"
+	"strings"
+	"sync"
+	"time"
+
 	"github.com/Masterminds/semver/v3"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -29,32 +37,27 @@ import (
 	dynamo_types "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/mount"
+	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
-	"github.com/moby/moby/client"
 	"github.com/sirupsen/logrus"
-	"io"
-	"log"
-	"sync"
-	"time"
 
 	"github.com/elgohr/go-localstack/internal"
 )
 
 // Instance manages the localstack
 type Instance struct {
-	cli internal.DockerClient
-	log *logrus.Logger
-
-	portMapping      map[Service]string
-	portMappingMutex sync.RWMutex
-
-	containerId      string
-	containerIdMutex sync.RWMutex
-
-	labels    map[string]string
-	version   string
-	fixedPort bool
-	timeout   time.Duration
+	cli                 internal.DockerClient
+	log                 *logrus.Logger
+	portMapping         map[Service]string
+	labels              map[string]string
+	containerId         string
+	containerIdMutex    sync.RWMutex
+	version             string
+	fixedPort           bool
+	timeout             time.Duration
+	volumeMounts        map[string]string
+	initCompleteLogLine string
 }
 
 // InstanceOption is an option that controls the behaviour of
@@ -94,19 +97,44 @@ func WithTimeout(timeout time.Duration) InstanceOption {
 
 // WithClientFromEnv configures the instance to use a client that respects environment variables.
 func WithClientFromEnv() (InstanceOption, error) {
-	return WithClientFromEnvCtx(context.Background())
-}
-
-// WithClientFromEnvCtx like WithClientFromEnv but with context
-func WithClientFromEnvCtx(ctx context.Context) (InstanceOption, error) {
 	cli, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		return nil, fmt.Errorf("localstack: could not connect to docker: %w", err)
 	}
-	cli.NegotiateAPIVersion(ctx)
 	return func(i *Instance) {
 		i.cli = cli
 	}, nil
+}
+
+// WithVolumeMount configures the instance to use the specified volume mounts.
+func WithVolumeMount(mountPath, hostPath string) (InstanceOption, error) {
+	return func(i *Instance) {
+		if i.volumeMounts == nil {
+			i.volumeMounts = make(map[string]string)
+		}
+		i.volumeMounts[mountPath] = hostPath
+	}, nil
+}
+
+// WithInitScriptMount configures the instance with init scripts and waits for a specific line from
+// the script to show as ready to continue
+func WithInitScriptMount(initScriptDirPath string, completeLogLine string) (InstanceOption, error) {
+	if completeLogLine == "" {
+		return nil, fmt.Errorf("init script mount requires a line to wait for in the init script for completion")
+	}
+
+	initScriptDirPathAbs, err := filepath.Abs(initScriptDirPath)
+	if err != nil {
+		return nil, err
+	}
+
+	return func(i *Instance) {
+		if i.volumeMounts == nil {
+			i.volumeMounts = make(map[string]string)
+		}
+		i.volumeMounts["/docker-entrypoint-initaws.d"] = initScriptDirPathAbs
+		i.initCompleteLogLine = completeLogLine
+	}, err
 }
 
 // Semver constraint that tests it the version is affected by the port change.
@@ -115,16 +143,10 @@ var portChangeIntroduced = internal.MustParseConstraint(">= 0.11.5")
 // NewInstance creates a new Instance
 // Fails when Docker is not reachable
 func NewInstance(opts ...InstanceOption) (*Instance, error) {
-	return NewInstanceCtx(context.Background(), opts...)
-}
-
-// NewInstanceCtx is NewInstance, but with Context
-func NewInstanceCtx(ctx context.Context, opts ...InstanceOption) (*Instance, error) {
 	cli, err := client.NewClientWithOpts()
 	if err != nil {
 		return nil, fmt.Errorf("localstack: could not connect to docker: %w", err)
 	}
-	cli.NegotiateAPIVersion(ctx)
 
 	i := Instance{
 		cli:         cli,
@@ -154,12 +176,13 @@ func NewInstanceCtx(ctx context.Context, opts ...InstanceOption) (*Instance, err
 }
 
 // Start starts the localstack
-func (i *Instance) Start(services ...Service) error {
-	return i.start(context.Background(), services...)
+// Deprecated: Use StartWithContext instead.
+func (i *Instance) Start() error {
+	return i.start(context.Background())
 }
 
 // StartWithContext starts the localstack and ends it when the context is done.
-// Deprecated: Use Start/Stop instead, as shutdown is not reliable
+// Use it to also start individual services, by default all are started.
 func (i *Instance) StartWithContext(ctx context.Context, services ...Service) error {
 	go func() {
 		<-ctx.Done()
@@ -171,6 +194,7 @@ func (i *Instance) StartWithContext(ctx context.Context, services ...Service) er
 }
 
 // Stop stops the localstack
+// Deprecated: Use StartWithContext instead.
 func (i *Instance) Stop() error {
 	return i.stop()
 }
@@ -180,9 +204,9 @@ func (i *Instance) Stop() error {
 func (i *Instance) Endpoint(service Service) string {
 	if i.getContainerId() != "" {
 		if i.fixedPort {
-			return i.getPortMapping(FixedPort)
+			return i.portMapping[FixedPort]
 		}
-		return i.getPortMapping(service)
+		return i.portMapping[service]
 	}
 	return ""
 }
@@ -192,9 +216,9 @@ func (i *Instance) Endpoint(service Service) string {
 func (i *Instance) EndpointV2(service Service) string {
 	if i.getContainerId() != "" {
 		if i.fixedPort {
-			return "http://" + i.getPortMapping(FixedPort)
+			return "http://" + i.portMapping[FixedPort]
 		}
-		return "http://" + i.getPortMapping(service)
+		return "http://" + i.portMapping[service]
 	}
 	return ""
 }
@@ -313,6 +337,7 @@ func (i *Instance) startLocalstack(ctx context.Context, services ...Service) err
 			AttachStderr: true,
 		}, &container.HostConfig{
 			PortBindings: pm,
+			Mounts:       i.getVolumeMounts(),
 			AutoRemove:   true,
 		}, nil, nil, "")
 	if err != nil {
@@ -387,13 +412,9 @@ func (i *Instance) mapPorts(ctx context.Context, services []Service, containerId
 			time.Sleep(time.Second)
 			return i.mapPorts(ctx, services, containerId, try+1)
 		}
-		i.portMappingMutex.Lock()
-		defer i.portMappingMutex.Unlock()
 		i.portMapping[FixedPort] = "localhost:" + bindings[0].HostPort
 	} else {
 		hasFilteredServices := len(services) > 0
-		i.portMappingMutex.Lock()
-		defer i.portMappingMutex.Unlock()
 		for service := range AvailableServices {
 			if hasFilteredServices && containsService(services, service) {
 				i.portMapping[service] = "localhost:" + ports[nat.Port(service.Port)][0].HostPort
@@ -410,12 +431,12 @@ func (i *Instance) stop() error {
 	if containerId == "" {
 		return nil
 	}
-	timeout := int(time.Second.Seconds())
-	if err := i.cli.ContainerStop(context.Background(), containerId, container.StopOptions{Timeout: &timeout}); err != nil {
+	timeout := time.Second
+	if err := i.cli.ContainerStop(context.Background(), containerId, &timeout); err != nil {
 		return err
 	}
 	i.setContainerId("")
-	i.resetPortMapping()
+	i.portMapping = map[Service]string{}
 	return nil
 }
 
@@ -454,6 +475,10 @@ func (i *Instance) isRunning(ctx context.Context) error {
 }
 
 func (i *Instance) checkAvailable(ctx context.Context) error {
+	if i.initCompleteLogLine != "" && !i.isInitComplete(ctx) {
+		return fmt.Errorf("init not complete, waiting for init complete log line")
+	}
+
 	cfg, err := config.LoadDefaultConfig(ctx,
 		config.WithRegion("us-east-1"),
 		config.WithEndpointResolverWithOptions(aws.EndpointResolverWithOptionsFunc(func(_, _ string, _ ...interface{}) (aws.Endpoint, error) {
@@ -509,18 +534,6 @@ func (i *Instance) setContainerId(v string) {
 	i.containerId = v
 }
 
-func (i *Instance) resetPortMapping() {
-	i.portMappingMutex.Lock()
-	defer i.portMappingMutex.Unlock()
-	i.portMapping = map[Service]string{}
-}
-
-func (i *Instance) getPortMapping(service Service) string {
-	i.portMappingMutex.RLock()
-	defer i.portMappingMutex.RUnlock()
-	return i.portMapping[service]
-}
-
 func shouldBeAdded(service Service) bool {
 	return service != DynamoDB && service != FixedPort && service != ES
 }
@@ -535,6 +548,25 @@ func containsService(services []Service, service Service) bool {
 		}
 	}
 	return false
+}
+
+func (i *Instance) isInitComplete(ctx context.Context) bool {
+	reader, err := i.cli.ContainerLogs(ctx, i.containerId, types.ContainerLogsOptions{
+		ShowStdout: true,
+		Follow:     false,
+	})
+	if err != nil {
+		i.log.Error(err)
+		return false
+	}
+	defer logClose(reader)
+
+	logContent, err := ioutil.ReadAll(reader)
+	if err != nil {
+		i.log.Error(err)
+		return false
+	}
+	return strings.Contains(string(logContent), i.initCompleteLogLine)
 }
 
 func (i *Instance) writeContainerLogToLogger(ctx context.Context, containerId string) {
@@ -558,6 +590,18 @@ func (i *Instance) writeContainerLogToLogger(ctx context.Context, containerId st
 			i.log.Println(err)
 		}
 	}
+}
+
+func (i *Instance) getVolumeMounts() []mount.Mount {
+	var mounts []mount.Mount
+	for mountPath, localPath := range i.volumeMounts {
+		mounts = append(mounts, mount.Mount{
+			Type:   mount.TypeBind,
+			Source: localPath,
+			Target: mountPath,
+		})
+	}
+	return mounts
 }
 
 func logClose(closer io.Closer) {
