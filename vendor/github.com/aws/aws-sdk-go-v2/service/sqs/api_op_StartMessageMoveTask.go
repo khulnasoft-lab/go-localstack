@@ -15,65 +15,80 @@ import (
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Add cost allocation tags to the specified Amazon SQS queue. For an overview,
-// see Tagging Your Amazon SQS Queues (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-queue-tags.html)
-// in the Amazon SQS Developer Guide. When you use queue tags, keep the following
-// guidelines in mind:
-//   - Adding more than 50 tags to a queue isn't recommended.
-//   - Tags don't have any semantic meaning. Amazon SQS interprets tags as
-//     character strings.
-//   - Tags are case-sensitive.
-//   - A new tag with a key identical to that of an existing tag overwrites the
-//     existing tag.
-//
-// For a full list of tag restrictions, see Quotas related to queues (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-limits.html#limits-queues)
-// in the Amazon SQS Developer Guide. Cross-account permissions don't apply to this
-// action. For more information, see Grant cross-account permissions to a role and
-// a username (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-customer-managed-policy-examples.html#grant-cross-account-permissions-to-role-and-user-name)
-// in the Amazon SQS Developer Guide.
-func (c *Client) TagQueue(ctx context.Context, params *TagQueueInput, optFns ...func(*Options)) (*TagQueueOutput, error) {
+// Starts an asynchronous task to move messages from a specified source queue to a
+// specified destination queue.
+//   - This action is currently limited to supporting message redrive from queues
+//     that are configured as dead-letter queues (DLQs) (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html)
+//     of other Amazon SQS queues only. Non-SQS queue sources of dead-letter queues,
+//     such as Lambda or Amazon SNS topics, are currently not supported.
+//   - In dead-letter queues redrive context, the StartMessageMoveTask the source
+//     queue is the DLQ, while the destination queue can be the original source queue
+//     (from which the messages were driven to the dead-letter-queue), or a custom
+//     destination queue.
+//   - Currently, only standard queues support redrive. FIFO queues don't support
+//     redrive.
+//   - Only one active message movement task is supported per queue at any given
+//     time.
+func (c *Client) StartMessageMoveTask(ctx context.Context, params *StartMessageMoveTaskInput, optFns ...func(*Options)) (*StartMessageMoveTaskOutput, error) {
 	if params == nil {
-		params = &TagQueueInput{}
+		params = &StartMessageMoveTaskInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "TagQueue", params, optFns, c.addOperationTagQueueMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "StartMessageMoveTask", params, optFns, c.addOperationStartMessageMoveTaskMiddlewares)
 	if err != nil {
 		return nil, err
 	}
 
-	out := result.(*TagQueueOutput)
+	out := result.(*StartMessageMoveTaskOutput)
 	out.ResultMetadata = metadata
 	return out, nil
 }
 
-type TagQueueInput struct {
+type StartMessageMoveTaskInput struct {
 
-	// The URL of the queue.
+	// The ARN of the queue that contains the messages to be moved to another queue.
+	// Currently, only ARNs of dead-letter queues (DLQs) whose sources are other Amazon
+	// SQS queues are accepted. DLQs whose sources are non-SQS queues, such as Lambda
+	// or Amazon SNS topics, are not currently supported.
 	//
 	// This member is required.
-	QueueUrl *string
+	SourceArn *string
 
-	// The list of tags to be added to the specified queue.
-	//
-	// This member is required.
-	Tags map[string]string
+	// The ARN of the queue that receives the moved messages. You can use this field
+	// to specify the destination queue where you would like to redrive messages. If
+	// this field is left blank, the messages will be redriven back to their respective
+	// original source queues.
+	DestinationArn *string
+
+	// The number of messages to be moved per second (the message movement rate). You
+	// can use this field to define a fixed message movement rate. The maximum value
+	// for messages per second is 500. If this field is left blank, the system will
+	// optimize the rate based on the queue message backlog size, which may vary
+	// throughout the duration of the message movement task.
+	MaxNumberOfMessagesPerSecond int32
 
 	noSmithyDocumentSerde
 }
 
-type TagQueueOutput struct {
+type StartMessageMoveTaskOutput struct {
+
+	// An identifier associated with a message movement task. You can use this
+	// identifier to cancel a specified message movement task using the
+	// CancelMessageMoveTask action.
+	TaskHandle *string
+
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
 
 	noSmithyDocumentSerde
 }
 
-func (c *Client) addOperationTagQueueMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsquery_serializeOpTagQueue{}, middleware.After)
+func (c *Client) addOperationStartMessageMoveTaskMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	err = stack.Serialize.Add(&awsAwsquery_serializeOpStartMessageMoveTask{}, middleware.After)
 	if err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsquery_deserializeOpTagQueue{}, middleware.After)
+	err = stack.Deserialize.Add(&awsAwsquery_deserializeOpStartMessageMoveTask{}, middleware.After)
 	if err != nil {
 		return err
 	}
@@ -116,13 +131,13 @@ func (c *Client) addOperationTagQueueMiddlewares(stack *middleware.Stack, option
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addTagQueueResolveEndpointMiddleware(stack, options); err != nil {
+	if err = addStartMessageMoveTaskResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = addOpTagQueueValidationMiddleware(stack); err != nil {
+	if err = addOpStartMessageMoveTaskValidationMiddleware(stack); err != nil {
 		return err
 	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opTagQueue(options.Region), middleware.Before); err != nil {
+	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opStartMessageMoveTask(options.Region), middleware.Before); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
@@ -143,25 +158,25 @@ func (c *Client) addOperationTagQueueMiddlewares(stack *middleware.Stack, option
 	return nil
 }
 
-func newServiceMetadataMiddleware_opTagQueue(region string) *awsmiddleware.RegisterServiceMetadata {
+func newServiceMetadataMiddleware_opStartMessageMoveTask(region string) *awsmiddleware.RegisterServiceMetadata {
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
 		SigningName:   "sqs",
-		OperationName: "TagQueue",
+		OperationName: "StartMessageMoveTask",
 	}
 }
 
-type opTagQueueResolveEndpointMiddleware struct {
+type opStartMessageMoveTaskResolveEndpointMiddleware struct {
 	EndpointResolver EndpointResolverV2
 	BuiltInResolver  builtInParameterResolver
 }
 
-func (*opTagQueueResolveEndpointMiddleware) ID() string {
+func (*opStartMessageMoveTaskResolveEndpointMiddleware) ID() string {
 	return "ResolveEndpointV2"
 }
 
-func (m *opTagQueueResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+func (m *opStartMessageMoveTaskResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
 	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
 ) {
 	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
@@ -263,8 +278,8 @@ func (m *opTagQueueResolveEndpointMiddleware) HandleSerialize(ctx context.Contex
 	return next.HandleSerialize(ctx, in)
 }
 
-func addTagQueueResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
-	return stack.Serialize.Insert(&opTagQueueResolveEndpointMiddleware{
+func addStartMessageMoveTaskResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
+	return stack.Serialize.Insert(&opStartMessageMoveTaskResolveEndpointMiddleware{
 		EndpointResolver: options.EndpointResolverV2,
 		BuiltInResolver: &builtInResolver{
 			Region:       options.Region,
