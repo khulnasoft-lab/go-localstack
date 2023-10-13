@@ -10,70 +10,68 @@ import (
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	internalauth "github.com/aws/aws-sdk-go-v2/internal/auth"
+	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
 	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Add cost allocation tags to the specified Amazon SQS queue. For an overview,
-// see Tagging Your Amazon SQS Queues (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-queue-tags.html)
-// in the Amazon SQS Developer Guide. When you use queue tags, keep the following
-// guidelines in mind:
-//   - Adding more than 50 tags to a queue isn't recommended.
-//   - Tags don't have any semantic meaning. Amazon SQS interprets tags as
-//     character strings.
-//   - Tags are case-sensitive.
-//   - A new tag with a key identical to that of an existing tag overwrites the
-//     existing tag.
-//
-// For a full list of tag restrictions, see Quotas related to queues (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-limits.html#limits-queues)
-// in the Amazon SQS Developer Guide. Cross-account permissions don't apply to this
-// action. For more information, see Grant cross-account permissions to a role and
-// a username (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-customer-managed-policy-examples.html#grant-cross-account-permissions-to-role-and-user-name)
-// in the Amazon SQS Developer Guide.
-func (c *Client) TagQueue(ctx context.Context, params *TagQueueInput, optFns ...func(*Options)) (*TagQueueOutput, error) {
+// Gets the most recent message movement tasks (up to 10) under a specific source
+// queue.
+//   - This action is currently limited to supporting message redrive from
+//     dead-letter queues (DLQs) (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html)
+//     only. In this context, the source queue is the dead-letter queue (DLQ), while
+//     the destination queue can be the original source queue (from which the messages
+//     were driven to the dead-letter-queue), or a custom destination queue.
+//   - Currently, only standard queues are supported.
+//   - Only one active message movement task is supported per queue at any given
+//     time.
+func (c *Client) ListMessageMoveTasks(ctx context.Context, params *ListMessageMoveTasksInput, optFns ...func(*Options)) (*ListMessageMoveTasksOutput, error) {
 	if params == nil {
-		params = &TagQueueInput{}
+		params = &ListMessageMoveTasksInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "TagQueue", params, optFns, c.addOperationTagQueueMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "ListMessageMoveTasks", params, optFns, c.addOperationListMessageMoveTasksMiddlewares)
 	if err != nil {
 		return nil, err
 	}
 
-	out := result.(*TagQueueOutput)
+	out := result.(*ListMessageMoveTasksOutput)
 	out.ResultMetadata = metadata
 	return out, nil
 }
 
-type TagQueueInput struct {
+type ListMessageMoveTasksInput struct {
 
-	// The URL of the queue.
+	// The ARN of the queue whose message movement tasks are to be listed.
 	//
 	// This member is required.
-	QueueUrl *string
+	SourceArn *string
 
-	// The list of tags to be added to the specified queue.
-	//
-	// This member is required.
-	Tags map[string]string
+	// The maximum number of results to include in the response. The default is 1,
+	// which provides the most recent message movement task. The upper limit is 10.
+	MaxResults int32
 
 	noSmithyDocumentSerde
 }
 
-type TagQueueOutput struct {
+type ListMessageMoveTasksOutput struct {
+
+	// A list of message movement tasks and their attributes.
+	Results []types.ListMessageMoveTasksResultEntry
+
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
 
 	noSmithyDocumentSerde
 }
 
-func (c *Client) addOperationTagQueueMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsquery_serializeOpTagQueue{}, middleware.After)
+func (c *Client) addOperationListMessageMoveTasksMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	err = stack.Serialize.Add(&awsAwsquery_serializeOpListMessageMoveTasks{}, middleware.After)
 	if err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsquery_deserializeOpTagQueue{}, middleware.After)
+	err = stack.Deserialize.Add(&awsAwsquery_deserializeOpListMessageMoveTasks{}, middleware.After)
 	if err != nil {
 		return err
 	}
@@ -116,13 +114,13 @@ func (c *Client) addOperationTagQueueMiddlewares(stack *middleware.Stack, option
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addTagQueueResolveEndpointMiddleware(stack, options); err != nil {
+	if err = addListMessageMoveTasksResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = addOpTagQueueValidationMiddleware(stack); err != nil {
+	if err = addOpListMessageMoveTasksValidationMiddleware(stack); err != nil {
 		return err
 	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opTagQueue(options.Region), middleware.Before); err != nil {
+	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opListMessageMoveTasks(options.Region), middleware.Before); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
@@ -143,25 +141,25 @@ func (c *Client) addOperationTagQueueMiddlewares(stack *middleware.Stack, option
 	return nil
 }
 
-func newServiceMetadataMiddleware_opTagQueue(region string) *awsmiddleware.RegisterServiceMetadata {
+func newServiceMetadataMiddleware_opListMessageMoveTasks(region string) *awsmiddleware.RegisterServiceMetadata {
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
 		SigningName:   "sqs",
-		OperationName: "TagQueue",
+		OperationName: "ListMessageMoveTasks",
 	}
 }
 
-type opTagQueueResolveEndpointMiddleware struct {
+type opListMessageMoveTasksResolveEndpointMiddleware struct {
 	EndpointResolver EndpointResolverV2
 	BuiltInResolver  builtInParameterResolver
 }
 
-func (*opTagQueueResolveEndpointMiddleware) ID() string {
+func (*opListMessageMoveTasksResolveEndpointMiddleware) ID() string {
 	return "ResolveEndpointV2"
 }
 
-func (m *opTagQueueResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+func (m *opListMessageMoveTasksResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
 	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
 ) {
 	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
@@ -263,8 +261,8 @@ func (m *opTagQueueResolveEndpointMiddleware) HandleSerialize(ctx context.Contex
 	return next.HandleSerialize(ctx, in)
 }
 
-func addTagQueueResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
-	return stack.Serialize.Insert(&opTagQueueResolveEndpointMiddleware{
+func addListMessageMoveTasksResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
+	return stack.Serialize.Insert(&opListMessageMoveTasksResolveEndpointMiddleware{
 		EndpointResolver: options.EndpointResolverV2,
 		BuiltInResolver: &builtInResolver{
 			Region:       options.Region,
