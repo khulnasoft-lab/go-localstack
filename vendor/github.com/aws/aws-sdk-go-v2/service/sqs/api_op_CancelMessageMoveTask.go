@@ -15,65 +15,60 @@ import (
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Add cost allocation tags to the specified Amazon SQS queue. For an overview,
-// see Tagging Your Amazon SQS Queues (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-queue-tags.html)
-// in the Amazon SQS Developer Guide. When you use queue tags, keep the following
-// guidelines in mind:
-//   - Adding more than 50 tags to a queue isn't recommended.
-//   - Tags don't have any semantic meaning. Amazon SQS interprets tags as
-//     character strings.
-//   - Tags are case-sensitive.
-//   - A new tag with a key identical to that of an existing tag overwrites the
-//     existing tag.
-//
-// For a full list of tag restrictions, see Quotas related to queues (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-limits.html#limits-queues)
-// in the Amazon SQS Developer Guide. Cross-account permissions don't apply to this
-// action. For more information, see Grant cross-account permissions to a role and
-// a username (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-customer-managed-policy-examples.html#grant-cross-account-permissions-to-role-and-user-name)
-// in the Amazon SQS Developer Guide.
-func (c *Client) TagQueue(ctx context.Context, params *TagQueueInput, optFns ...func(*Options)) (*TagQueueOutput, error) {
+// Cancels a specified message movement task. A message movement can only be
+// cancelled when the current status is RUNNING. Cancelling a message movement task
+// does not revert the messages that have already been moved. It can only stop the
+// messages that have not been moved yet.
+//   - This action is currently limited to supporting message redrive from
+//     dead-letter queues (DLQs) (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html)
+//     only. In this context, the source queue is the dead-letter queue (DLQ), while
+//     the destination queue can be the original source queue (from which the messages
+//     were driven to the dead-letter-queue), or a custom destination queue.
+//   - Currently, only standard queues are supported.
+//   - Only one active message movement task is supported per queue at any given
+//     time.
+func (c *Client) CancelMessageMoveTask(ctx context.Context, params *CancelMessageMoveTaskInput, optFns ...func(*Options)) (*CancelMessageMoveTaskOutput, error) {
 	if params == nil {
-		params = &TagQueueInput{}
+		params = &CancelMessageMoveTaskInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "TagQueue", params, optFns, c.addOperationTagQueueMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "CancelMessageMoveTask", params, optFns, c.addOperationCancelMessageMoveTaskMiddlewares)
 	if err != nil {
 		return nil, err
 	}
 
-	out := result.(*TagQueueOutput)
+	out := result.(*CancelMessageMoveTaskOutput)
 	out.ResultMetadata = metadata
 	return out, nil
 }
 
-type TagQueueInput struct {
+type CancelMessageMoveTaskInput struct {
 
-	// The URL of the queue.
+	// An identifier associated with a message movement task.
 	//
 	// This member is required.
-	QueueUrl *string
-
-	// The list of tags to be added to the specified queue.
-	//
-	// This member is required.
-	Tags map[string]string
+	TaskHandle *string
 
 	noSmithyDocumentSerde
 }
 
-type TagQueueOutput struct {
+type CancelMessageMoveTaskOutput struct {
+
+	// The approximate number of messages already moved to the destination queue.
+	ApproximateNumberOfMessagesMoved int64
+
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
 
 	noSmithyDocumentSerde
 }
 
-func (c *Client) addOperationTagQueueMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsquery_serializeOpTagQueue{}, middleware.After)
+func (c *Client) addOperationCancelMessageMoveTaskMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	err = stack.Serialize.Add(&awsAwsquery_serializeOpCancelMessageMoveTask{}, middleware.After)
 	if err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsquery_deserializeOpTagQueue{}, middleware.After)
+	err = stack.Deserialize.Add(&awsAwsquery_deserializeOpCancelMessageMoveTask{}, middleware.After)
 	if err != nil {
 		return err
 	}
@@ -116,13 +111,13 @@ func (c *Client) addOperationTagQueueMiddlewares(stack *middleware.Stack, option
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addTagQueueResolveEndpointMiddleware(stack, options); err != nil {
+	if err = addCancelMessageMoveTaskResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = addOpTagQueueValidationMiddleware(stack); err != nil {
+	if err = addOpCancelMessageMoveTaskValidationMiddleware(stack); err != nil {
 		return err
 	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opTagQueue(options.Region), middleware.Before); err != nil {
+	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opCancelMessageMoveTask(options.Region), middleware.Before); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
@@ -143,25 +138,25 @@ func (c *Client) addOperationTagQueueMiddlewares(stack *middleware.Stack, option
 	return nil
 }
 
-func newServiceMetadataMiddleware_opTagQueue(region string) *awsmiddleware.RegisterServiceMetadata {
+func newServiceMetadataMiddleware_opCancelMessageMoveTask(region string) *awsmiddleware.RegisterServiceMetadata {
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
 		SigningName:   "sqs",
-		OperationName: "TagQueue",
+		OperationName: "CancelMessageMoveTask",
 	}
 }
 
-type opTagQueueResolveEndpointMiddleware struct {
+type opCancelMessageMoveTaskResolveEndpointMiddleware struct {
 	EndpointResolver EndpointResolverV2
 	BuiltInResolver  builtInParameterResolver
 }
 
-func (*opTagQueueResolveEndpointMiddleware) ID() string {
+func (*opCancelMessageMoveTaskResolveEndpointMiddleware) ID() string {
 	return "ResolveEndpointV2"
 }
 
-func (m *opTagQueueResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+func (m *opCancelMessageMoveTaskResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
 	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
 ) {
 	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
@@ -263,8 +258,8 @@ func (m *opTagQueueResolveEndpointMiddleware) HandleSerialize(ctx context.Contex
 	return next.HandleSerialize(ctx, in)
 }
 
-func addTagQueueResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
-	return stack.Serialize.Insert(&opTagQueueResolveEndpointMiddleware{
+func addCancelMessageMoveTaskResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
+	return stack.Serialize.Insert(&opCancelMessageMoveTaskResolveEndpointMiddleware{
 		EndpointResolver: options.EndpointResolverV2,
 		BuiltInResolver: &builtInResolver{
 			Region:       options.Region,
