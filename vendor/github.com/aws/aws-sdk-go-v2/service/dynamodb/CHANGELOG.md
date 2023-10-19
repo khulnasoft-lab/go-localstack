@@ -1,3 +1,12 @@
+# v1.23.0 (2023-10-18)
+
+* **Feature**: Add handwritten paginators that were present in some services in the v1 SDK.
+* **Documentation**: Updating descriptions for several APIs.
+
+# v1.22.2 (2023-10-12)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
 # v1.22.1 (2023-10-06)
 
 * **Dependency Update**: Updated to the latest SDK module versions
