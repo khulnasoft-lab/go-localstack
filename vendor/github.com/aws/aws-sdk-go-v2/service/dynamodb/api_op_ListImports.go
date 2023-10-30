@@ -14,93 +14,48 @@ import (
 	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
-	"time"
 )
 
-// Exports table data to an S3 bucket. The table must have point in time recovery
-// enabled, and you can export data from any time within the point in time recovery
-// window.
-func (c *Client) ExportTableToPointInTime(ctx context.Context, params *ExportTableToPointInTimeInput, optFns ...func(*Options)) (*ExportTableToPointInTimeOutput, error) {
+// Lists completed imports within the past 90 days.
+func (c *Client) ListImports(ctx context.Context, params *ListImportsInput, optFns ...func(*Options)) (*ListImportsOutput, error) {
 	if params == nil {
-		params = &ExportTableToPointInTimeInput{}
+		params = &ListImportsInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "ExportTableToPointInTime", params, optFns, c.addOperationExportTableToPointInTimeMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "ListImports", params, optFns, c.addOperationListImportsMiddlewares)
 	if err != nil {
 		return nil, err
 	}
 
-	out := result.(*ExportTableToPointInTimeOutput)
+	out := result.(*ListImportsOutput)
 	out.ResultMetadata = metadata
 	return out, nil
 }
 
-type ExportTableToPointInTimeInput struct {
+type ListImportsInput struct {
 
-	// The name of the Amazon S3 bucket to export the snapshot to.
-	//
-	// This member is required.
-	S3Bucket *string
+	// An optional string that, if supplied, must be copied from the output of a
+	// previous call to ListImports . When provided in this manner, the API fetches the
+	// next page of results.
+	NextToken *string
 
-	// The Amazon Resource Name (ARN) associated with the table to export.
-	//
-	// This member is required.
+	// The number of ImportSummary objects returned in a single page.
+	PageSize *int32
+
+	// The Amazon Resource Name (ARN) associated with the table that was imported to.
 	TableArn *string
-
-	// Providing a ClientToken makes the call to ExportTableToPointInTimeInput
-	// idempotent, meaning that multiple identical calls have the same effect as one
-	// single call. A client token is valid for 8 hours after the first request that
-	// uses it is completed. After 8 hours, any request with the same client token is
-	// treated as a new request. Do not resubmit the same request with the same client
-	// token for more than 8 hours, or the result might not be idempotent. If you
-	// submit a request with the same client token but a change in other parameters
-	// within the 8-hour idempotency window, DynamoDB returns an
-	// ImportConflictException .
-	ClientToken *string
-
-	// The format for the exported data. Valid values for ExportFormat are
-	// DYNAMODB_JSON or ION .
-	ExportFormat types.ExportFormat
-
-	// Time in the past from which to export table data, counted in seconds from the
-	// start of the Unix epoch. The table export will be a snapshot of the table's
-	// state at this point in time.
-	ExportTime *time.Time
-
-	// Choice of whether to execute as a full export or incremental export. Valid
-	// values are FULL_EXPORT or INCREMENTAL_EXPORT. The default value is FULL_EXPORT.
-	// If INCREMENTAL_EXPORT is provided, the IncrementalExportSpecification must also
-	// be used.
-	ExportType types.ExportType
-
-	// Optional object containing the parameters specific to an incremental export.
-	IncrementalExportSpecification *types.IncrementalExportSpecification
-
-	// The ID of the Amazon Web Services account that owns the bucket the export will
-	// be stored in.
-	S3BucketOwner *string
-
-	// The Amazon S3 bucket prefix to use as the file name and path of the exported
-	// snapshot.
-	S3Prefix *string
-
-	// Type of encryption used on the bucket where export data will be stored. Valid
-	// values for S3SseAlgorithm are:
-	//   - AES256 - server-side encryption with Amazon S3 managed keys
-	//   - KMS - server-side encryption with KMS managed keys
-	S3SseAlgorithm types.S3SseAlgorithm
-
-	// The ID of the KMS managed key used to encrypt the S3 bucket where export data
-	// will be stored (if applicable).
-	S3SseKmsKeyId *string
 
 	noSmithyDocumentSerde
 }
 
-type ExportTableToPointInTimeOutput struct {
+type ListImportsOutput struct {
 
-	// Contains a description of the table export.
-	ExportDescription *types.ExportDescription
+	// A list of ImportSummary objects.
+	ImportSummaryList []types.ImportSummary
+
+	// If this value is returned, there are additional results to be displayed. To
+	// retrieve them, call ListImports again, with NextToken set to this value.
+	NextToken *string
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
@@ -108,12 +63,12 @@ type ExportTableToPointInTimeOutput struct {
 	noSmithyDocumentSerde
 }
 
-func (c *Client) addOperationExportTableToPointInTimeMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson10_serializeOpExportTableToPointInTime{}, middleware.After)
+func (c *Client) addOperationListImportsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	err = stack.Serialize.Add(&awsAwsjson10_serializeOpListImports{}, middleware.After)
 	if err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson10_deserializeOpExportTableToPointInTime{}, middleware.After)
+	err = stack.Deserialize.Add(&awsAwsjson10_deserializeOpListImports{}, middleware.After)
 	if err != nil {
 		return err
 	}
@@ -156,16 +111,10 @@ func (c *Client) addOperationExportTableToPointInTimeMiddlewares(stack *middlewa
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addExportTableToPointInTimeResolveEndpointMiddleware(stack, options); err != nil {
+	if err = addListImportsResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = addIdempotencyToken_opExportTableToPointInTimeMiddleware(stack, options); err != nil {
-		return err
-	}
-	if err = addOpExportTableToPointInTimeValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opExportTableToPointInTime(options.Region), middleware.Before); err != nil {
+	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opListImports(options.Region), middleware.Before); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
@@ -192,58 +141,114 @@ func (c *Client) addOperationExportTableToPointInTimeMiddlewares(stack *middlewa
 	return nil
 }
 
-type idempotencyToken_initializeOpExportTableToPointInTime struct {
-	tokenProvider IdempotencyTokenProvider
+// ListImportsAPIClient is a client that implements the ListImports operation.
+type ListImportsAPIClient interface {
+	ListImports(context.Context, *ListImportsInput, ...func(*Options)) (*ListImportsOutput, error)
 }
 
-func (*idempotencyToken_initializeOpExportTableToPointInTime) ID() string {
-	return "OperationIdempotencyTokenAutoFill"
+var _ ListImportsAPIClient = (*Client)(nil)
+
+// ListImportsPaginatorOptions is the paginator options for ListImports
+type ListImportsPaginatorOptions struct {
+	// The number of ImportSummary objects returned in a single page.
+	Limit int32
+
+	// Set to true if pagination should stop if the service returns a pagination token
+	// that matches the most recent token provided to the service.
+	StopOnDuplicateToken bool
 }
 
-func (m *idempotencyToken_initializeOpExportTableToPointInTime) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
-	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
-) {
-	if m.tokenProvider == nil {
-		return next.HandleInitialize(ctx, in)
+// ListImportsPaginator is a paginator for ListImports
+type ListImportsPaginator struct {
+	options   ListImportsPaginatorOptions
+	client    ListImportsAPIClient
+	params    *ListImportsInput
+	nextToken *string
+	firstPage bool
+}
+
+// NewListImportsPaginator returns a new ListImportsPaginator
+func NewListImportsPaginator(client ListImportsAPIClient, params *ListImportsInput, optFns ...func(*ListImportsPaginatorOptions)) *ListImportsPaginator {
+	if params == nil {
+		params = &ListImportsInput{}
 	}
 
-	input, ok := in.Parameters.(*ExportTableToPointInTimeInput)
-	if !ok {
-		return out, metadata, fmt.Errorf("expected middleware input to be of type *ExportTableToPointInTimeInput ")
+	options := ListImportsPaginatorOptions{}
+	if params.PageSize != nil {
+		options.Limit = *params.PageSize
 	}
 
-	if input.ClientToken == nil {
-		t, err := m.tokenProvider.GetIdempotencyToken()
-		if err != nil {
-			return out, metadata, err
-		}
-		input.ClientToken = &t
+	for _, fn := range optFns {
+		fn(&options)
 	}
-	return next.HandleInitialize(ctx, in)
-}
-func addIdempotencyToken_opExportTableToPointInTimeMiddleware(stack *middleware.Stack, cfg Options) error {
-	return stack.Initialize.Add(&idempotencyToken_initializeOpExportTableToPointInTime{tokenProvider: cfg.IdempotencyTokenProvider}, middleware.Before)
+
+	return &ListImportsPaginator{
+		options:   options,
+		client:    client,
+		params:    params,
+		firstPage: true,
+		nextToken: params.NextToken,
+	}
 }
 
-func newServiceMetadataMiddleware_opExportTableToPointInTime(region string) *awsmiddleware.RegisterServiceMetadata {
+// HasMorePages returns a boolean indicating whether more pages are available
+func (p *ListImportsPaginator) HasMorePages() bool {
+	return p.firstPage || (p.nextToken != nil && len(*p.nextToken) != 0)
+}
+
+// NextPage retrieves the next ListImports page.
+func (p *ListImportsPaginator) NextPage(ctx context.Context, optFns ...func(*Options)) (*ListImportsOutput, error) {
+	if !p.HasMorePages() {
+		return nil, fmt.Errorf("no more pages available")
+	}
+
+	params := *p.params
+	params.NextToken = p.nextToken
+
+	var limit *int32
+	if p.options.Limit > 0 {
+		limit = &p.options.Limit
+	}
+	params.PageSize = limit
+
+	result, err := p.client.ListImports(ctx, &params, optFns...)
+	if err != nil {
+		return nil, err
+	}
+	p.firstPage = false
+
+	prevToken := p.nextToken
+	p.nextToken = result.NextToken
+
+	if p.options.StopOnDuplicateToken &&
+		prevToken != nil &&
+		p.nextToken != nil &&
+		*prevToken == *p.nextToken {
+		p.nextToken = nil
+	}
+
+	return result, nil
+}
+
+func newServiceMetadataMiddleware_opListImports(region string) *awsmiddleware.RegisterServiceMetadata {
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
 		SigningName:   "dynamodb",
-		OperationName: "ExportTableToPointInTime",
+		OperationName: "ListImports",
 	}
 }
 
-type opExportTableToPointInTimeResolveEndpointMiddleware struct {
+type opListImportsResolveEndpointMiddleware struct {
 	EndpointResolver EndpointResolverV2
 	BuiltInResolver  builtInParameterResolver
 }
 
-func (*opExportTableToPointInTimeResolveEndpointMiddleware) ID() string {
+func (*opListImportsResolveEndpointMiddleware) ID() string {
 	return "ResolveEndpointV2"
 }
 
-func (m *opExportTableToPointInTimeResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+func (m *opListImportsResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
 	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
 ) {
 	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
@@ -345,8 +350,8 @@ func (m *opExportTableToPointInTimeResolveEndpointMiddleware) HandleSerialize(ct
 	return next.HandleSerialize(ctx, in)
 }
 
-func addExportTableToPointInTimeResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
-	return stack.Serialize.Insert(&opExportTableToPointInTimeResolveEndpointMiddleware{
+func addListImportsResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
+	return stack.Serialize.Insert(&opListImportsResolveEndpointMiddleware{
 		EndpointResolver: options.EndpointResolverV2,
 		BuiltInResolver: &builtInResolver{
 			Region:       options.Region,
