@@ -3,9 +3,9 @@ module github.com/elgohr/go-localstack
 go 1.18
 
 require (
-	github.com/Masterminds/semver/v3 v3.1.1
+	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/aws/aws-sdk-go v1.44.47
-	github.com/aws/aws-sdk-go-v2 v1.16.6
+	github.com/aws/aws-sdk-go-v2 v1.21.1
 	github.com/aws/aws-sdk-go-v2/config v1.15.12
 	github.com/aws/aws-sdk-go-v2/credentials v1.12.7
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.15.8
@@ -29,7 +29,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery v1.7.36 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.36 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.15.1 // indirect
-	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.17.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.23.1 // indirect
 	github.com/aws/smithy-go v1.15.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
