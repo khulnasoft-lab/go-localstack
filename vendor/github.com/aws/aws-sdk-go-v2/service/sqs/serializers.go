@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+<<<<<<< HEAD
 	"github.com/aws/aws-sdk-go-v2/aws/protocol/query"
 	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
 	smithy "github.com/aws/smithy-go"
@@ -24,6 +25,25 @@ func (*awsAwsquery_serializeOpAddPermission) ID() string {
 }
 
 func (m *awsAwsquery_serializeOpAddPermission) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+=======
+	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
+	smithy "github.com/aws/smithy-go"
+	"github.com/aws/smithy-go/encoding/httpbinding"
+	smithyjson "github.com/aws/smithy-go/encoding/json"
+	"github.com/aws/smithy-go/middleware"
+	smithyhttp "github.com/aws/smithy-go/transport/http"
+	"path"
+)
+
+type awsAwsjson10_serializeOpAddPermission struct {
+}
+
+func (*awsAwsjson10_serializeOpAddPermission) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsjson10_serializeOpAddPermission) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
 ) {
 	request, ok := in.Request.(*smithyhttp.Request)
@@ -51,6 +71,7 @@ func (m *awsAwsquery_serializeOpAddPermission) HandleSerialize(ctx context.Conte
 	if err != nil {
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
+<<<<<<< HEAD
 	httpBindingEncoder.SetHeader("Content-Type").String("application/x-www-form-urlencoded")
 
 	bodyWriter := bytes.NewBuffer(nil)
@@ -69,6 +90,17 @@ func (m *awsAwsquery_serializeOpAddPermission) HandleSerialize(ctx context.Conte
 	}
 
 	if request, err = request.SetStream(bytes.NewReader(bodyWriter.Bytes())); err != nil {
+=======
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-amz-json-1.0")
+	httpBindingEncoder.SetHeader("X-Amz-Target").String("AmazonSQS.AddPermission")
+
+	jsonEncoder := smithyjson.NewEncoder()
+	if err := awsAwsjson10_serializeOpDocumentAddPermissionInput(input, jsonEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(jsonEncoder.Bytes())); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
 
@@ -80,6 +112,7 @@ func (m *awsAwsquery_serializeOpAddPermission) HandleSerialize(ctx context.Conte
 	return next.HandleSerialize(ctx, in)
 }
 
+<<<<<<< HEAD
 type awsAwsquery_serializeOpChangeMessageVisibility struct {
 }
 
@@ -88,6 +121,71 @@ func (*awsAwsquery_serializeOpChangeMessageVisibility) ID() string {
 }
 
 func (m *awsAwsquery_serializeOpChangeMessageVisibility) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+=======
+type awsAwsjson10_serializeOpCancelMessageMoveTask struct {
+}
+
+func (*awsAwsjson10_serializeOpCancelMessageMoveTask) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsjson10_serializeOpCancelMessageMoveTask) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
+) {
+	request, ok := in.Request.(*smithyhttp.Request)
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown transport type %T", in.Request)}
+	}
+
+	input, ok := in.Parameters.(*CancelMessageMoveTaskInput)
+	_ = input
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown input parameters type %T", in.Parameters)}
+	}
+
+	operationPath := "/"
+	if len(request.Request.URL.Path) == 0 {
+		request.Request.URL.Path = operationPath
+	} else {
+		request.Request.URL.Path = path.Join(request.Request.URL.Path, operationPath)
+		if request.Request.URL.Path != "/" && operationPath[len(operationPath)-1] == '/' {
+			request.Request.URL.Path += "/"
+		}
+	}
+	request.Request.Method = "POST"
+	httpBindingEncoder, err := httpbinding.NewEncoder(request.URL.Path, request.URL.RawQuery, request.Header)
+	if err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-amz-json-1.0")
+	httpBindingEncoder.SetHeader("X-Amz-Target").String("AmazonSQS.CancelMessageMoveTask")
+
+	jsonEncoder := smithyjson.NewEncoder()
+	if err := awsAwsjson10_serializeOpDocumentCancelMessageMoveTaskInput(input, jsonEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(jsonEncoder.Bytes())); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request.Request, err = httpBindingEncoder.Encode(request.Request); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	in.Request = request
+
+	return next.HandleSerialize(ctx, in)
+}
+
+type awsAwsjson10_serializeOpChangeMessageVisibility struct {
+}
+
+func (*awsAwsjson10_serializeOpChangeMessageVisibility) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsjson10_serializeOpChangeMessageVisibility) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
 ) {
 	request, ok := in.Request.(*smithyhttp.Request)
@@ -115,6 +213,7 @@ func (m *awsAwsquery_serializeOpChangeMessageVisibility) HandleSerialize(ctx con
 	if err != nil {
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
+<<<<<<< HEAD
 	httpBindingEncoder.SetHeader("Content-Type").String("application/x-www-form-urlencoded")
 
 	bodyWriter := bytes.NewBuffer(nil)
@@ -133,6 +232,17 @@ func (m *awsAwsquery_serializeOpChangeMessageVisibility) HandleSerialize(ctx con
 	}
 
 	if request, err = request.SetStream(bytes.NewReader(bodyWriter.Bytes())); err != nil {
+=======
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-amz-json-1.0")
+	httpBindingEncoder.SetHeader("X-Amz-Target").String("AmazonSQS.ChangeMessageVisibility")
+
+	jsonEncoder := smithyjson.NewEncoder()
+	if err := awsAwsjson10_serializeOpDocumentChangeMessageVisibilityInput(input, jsonEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(jsonEncoder.Bytes())); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
 
@@ -144,6 +254,7 @@ func (m *awsAwsquery_serializeOpChangeMessageVisibility) HandleSerialize(ctx con
 	return next.HandleSerialize(ctx, in)
 }
 
+<<<<<<< HEAD
 type awsAwsquery_serializeOpChangeMessageVisibilityBatch struct {
 }
 
@@ -152,6 +263,16 @@ func (*awsAwsquery_serializeOpChangeMessageVisibilityBatch) ID() string {
 }
 
 func (m *awsAwsquery_serializeOpChangeMessageVisibilityBatch) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+=======
+type awsAwsjson10_serializeOpChangeMessageVisibilityBatch struct {
+}
+
+func (*awsAwsjson10_serializeOpChangeMessageVisibilityBatch) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsjson10_serializeOpChangeMessageVisibilityBatch) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
 ) {
 	request, ok := in.Request.(*smithyhttp.Request)
@@ -179,6 +300,7 @@ func (m *awsAwsquery_serializeOpChangeMessageVisibilityBatch) HandleSerialize(ct
 	if err != nil {
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
+<<<<<<< HEAD
 	httpBindingEncoder.SetHeader("Content-Type").String("application/x-www-form-urlencoded")
 
 	bodyWriter := bytes.NewBuffer(nil)
@@ -197,6 +319,17 @@ func (m *awsAwsquery_serializeOpChangeMessageVisibilityBatch) HandleSerialize(ct
 	}
 
 	if request, err = request.SetStream(bytes.NewReader(bodyWriter.Bytes())); err != nil {
+=======
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-amz-json-1.0")
+	httpBindingEncoder.SetHeader("X-Amz-Target").String("AmazonSQS.ChangeMessageVisibilityBatch")
+
+	jsonEncoder := smithyjson.NewEncoder()
+	if err := awsAwsjson10_serializeOpDocumentChangeMessageVisibilityBatchInput(input, jsonEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(jsonEncoder.Bytes())); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
 
@@ -208,6 +341,7 @@ func (m *awsAwsquery_serializeOpChangeMessageVisibilityBatch) HandleSerialize(ct
 	return next.HandleSerialize(ctx, in)
 }
 
+<<<<<<< HEAD
 type awsAwsquery_serializeOpCreateQueue struct {
 }
 
@@ -216,6 +350,16 @@ func (*awsAwsquery_serializeOpCreateQueue) ID() string {
 }
 
 func (m *awsAwsquery_serializeOpCreateQueue) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+=======
+type awsAwsjson10_serializeOpCreateQueue struct {
+}
+
+func (*awsAwsjson10_serializeOpCreateQueue) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsjson10_serializeOpCreateQueue) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
 ) {
 	request, ok := in.Request.(*smithyhttp.Request)
@@ -243,6 +387,7 @@ func (m *awsAwsquery_serializeOpCreateQueue) HandleSerialize(ctx context.Context
 	if err != nil {
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
+<<<<<<< HEAD
 	httpBindingEncoder.SetHeader("Content-Type").String("application/x-www-form-urlencoded")
 
 	bodyWriter := bytes.NewBuffer(nil)
@@ -261,6 +406,17 @@ func (m *awsAwsquery_serializeOpCreateQueue) HandleSerialize(ctx context.Context
 	}
 
 	if request, err = request.SetStream(bytes.NewReader(bodyWriter.Bytes())); err != nil {
+=======
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-amz-json-1.0")
+	httpBindingEncoder.SetHeader("X-Amz-Target").String("AmazonSQS.CreateQueue")
+
+	jsonEncoder := smithyjson.NewEncoder()
+	if err := awsAwsjson10_serializeOpDocumentCreateQueueInput(input, jsonEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(jsonEncoder.Bytes())); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
 
@@ -272,6 +428,7 @@ func (m *awsAwsquery_serializeOpCreateQueue) HandleSerialize(ctx context.Context
 	return next.HandleSerialize(ctx, in)
 }
 
+<<<<<<< HEAD
 type awsAwsquery_serializeOpDeleteMessage struct {
 }
 
@@ -280,6 +437,16 @@ func (*awsAwsquery_serializeOpDeleteMessage) ID() string {
 }
 
 func (m *awsAwsquery_serializeOpDeleteMessage) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+=======
+type awsAwsjson10_serializeOpDeleteMessage struct {
+}
+
+func (*awsAwsjson10_serializeOpDeleteMessage) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsjson10_serializeOpDeleteMessage) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
 ) {
 	request, ok := in.Request.(*smithyhttp.Request)
@@ -307,6 +474,7 @@ func (m *awsAwsquery_serializeOpDeleteMessage) HandleSerialize(ctx context.Conte
 	if err != nil {
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
+<<<<<<< HEAD
 	httpBindingEncoder.SetHeader("Content-Type").String("application/x-www-form-urlencoded")
 
 	bodyWriter := bytes.NewBuffer(nil)
@@ -325,6 +493,17 @@ func (m *awsAwsquery_serializeOpDeleteMessage) HandleSerialize(ctx context.Conte
 	}
 
 	if request, err = request.SetStream(bytes.NewReader(bodyWriter.Bytes())); err != nil {
+=======
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-amz-json-1.0")
+	httpBindingEncoder.SetHeader("X-Amz-Target").String("AmazonSQS.DeleteMessage")
+
+	jsonEncoder := smithyjson.NewEncoder()
+	if err := awsAwsjson10_serializeOpDocumentDeleteMessageInput(input, jsonEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(jsonEncoder.Bytes())); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
 
@@ -336,6 +515,7 @@ func (m *awsAwsquery_serializeOpDeleteMessage) HandleSerialize(ctx context.Conte
 	return next.HandleSerialize(ctx, in)
 }
 
+<<<<<<< HEAD
 type awsAwsquery_serializeOpDeleteMessageBatch struct {
 }
 
@@ -344,6 +524,16 @@ func (*awsAwsquery_serializeOpDeleteMessageBatch) ID() string {
 }
 
 func (m *awsAwsquery_serializeOpDeleteMessageBatch) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+=======
+type awsAwsjson10_serializeOpDeleteMessageBatch struct {
+}
+
+func (*awsAwsjson10_serializeOpDeleteMessageBatch) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsjson10_serializeOpDeleteMessageBatch) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
 ) {
 	request, ok := in.Request.(*smithyhttp.Request)
@@ -371,6 +561,7 @@ func (m *awsAwsquery_serializeOpDeleteMessageBatch) HandleSerialize(ctx context.
 	if err != nil {
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
+<<<<<<< HEAD
 	httpBindingEncoder.SetHeader("Content-Type").String("application/x-www-form-urlencoded")
 
 	bodyWriter := bytes.NewBuffer(nil)
@@ -389,6 +580,17 @@ func (m *awsAwsquery_serializeOpDeleteMessageBatch) HandleSerialize(ctx context.
 	}
 
 	if request, err = request.SetStream(bytes.NewReader(bodyWriter.Bytes())); err != nil {
+=======
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-amz-json-1.0")
+	httpBindingEncoder.SetHeader("X-Amz-Target").String("AmazonSQS.DeleteMessageBatch")
+
+	jsonEncoder := smithyjson.NewEncoder()
+	if err := awsAwsjson10_serializeOpDocumentDeleteMessageBatchInput(input, jsonEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(jsonEncoder.Bytes())); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
 
@@ -400,6 +602,7 @@ func (m *awsAwsquery_serializeOpDeleteMessageBatch) HandleSerialize(ctx context.
 	return next.HandleSerialize(ctx, in)
 }
 
+<<<<<<< HEAD
 type awsAwsquery_serializeOpDeleteQueue struct {
 }
 
@@ -408,6 +611,16 @@ func (*awsAwsquery_serializeOpDeleteQueue) ID() string {
 }
 
 func (m *awsAwsquery_serializeOpDeleteQueue) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+=======
+type awsAwsjson10_serializeOpDeleteQueue struct {
+}
+
+func (*awsAwsjson10_serializeOpDeleteQueue) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsjson10_serializeOpDeleteQueue) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
 ) {
 	request, ok := in.Request.(*smithyhttp.Request)
@@ -435,6 +648,7 @@ func (m *awsAwsquery_serializeOpDeleteQueue) HandleSerialize(ctx context.Context
 	if err != nil {
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
+<<<<<<< HEAD
 	httpBindingEncoder.SetHeader("Content-Type").String("application/x-www-form-urlencoded")
 
 	bodyWriter := bytes.NewBuffer(nil)
@@ -453,6 +667,17 @@ func (m *awsAwsquery_serializeOpDeleteQueue) HandleSerialize(ctx context.Context
 	}
 
 	if request, err = request.SetStream(bytes.NewReader(bodyWriter.Bytes())); err != nil {
+=======
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-amz-json-1.0")
+	httpBindingEncoder.SetHeader("X-Amz-Target").String("AmazonSQS.DeleteQueue")
+
+	jsonEncoder := smithyjson.NewEncoder()
+	if err := awsAwsjson10_serializeOpDocumentDeleteQueueInput(input, jsonEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(jsonEncoder.Bytes())); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
 
@@ -464,6 +689,7 @@ func (m *awsAwsquery_serializeOpDeleteQueue) HandleSerialize(ctx context.Context
 	return next.HandleSerialize(ctx, in)
 }
 
+<<<<<<< HEAD
 type awsAwsquery_serializeOpGetQueueAttributes struct {
 }
 
@@ -472,6 +698,16 @@ func (*awsAwsquery_serializeOpGetQueueAttributes) ID() string {
 }
 
 func (m *awsAwsquery_serializeOpGetQueueAttributes) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+=======
+type awsAwsjson10_serializeOpGetQueueAttributes struct {
+}
+
+func (*awsAwsjson10_serializeOpGetQueueAttributes) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsjson10_serializeOpGetQueueAttributes) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
 ) {
 	request, ok := in.Request.(*smithyhttp.Request)
@@ -499,6 +735,7 @@ func (m *awsAwsquery_serializeOpGetQueueAttributes) HandleSerialize(ctx context.
 	if err != nil {
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
+<<<<<<< HEAD
 	httpBindingEncoder.SetHeader("Content-Type").String("application/x-www-form-urlencoded")
 
 	bodyWriter := bytes.NewBuffer(nil)
@@ -517,6 +754,17 @@ func (m *awsAwsquery_serializeOpGetQueueAttributes) HandleSerialize(ctx context.
 	}
 
 	if request, err = request.SetStream(bytes.NewReader(bodyWriter.Bytes())); err != nil {
+=======
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-amz-json-1.0")
+	httpBindingEncoder.SetHeader("X-Amz-Target").String("AmazonSQS.GetQueueAttributes")
+
+	jsonEncoder := smithyjson.NewEncoder()
+	if err := awsAwsjson10_serializeOpDocumentGetQueueAttributesInput(input, jsonEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(jsonEncoder.Bytes())); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
 
@@ -528,6 +776,7 @@ func (m *awsAwsquery_serializeOpGetQueueAttributes) HandleSerialize(ctx context.
 	return next.HandleSerialize(ctx, in)
 }
 
+<<<<<<< HEAD
 type awsAwsquery_serializeOpGetQueueUrl struct {
 }
 
@@ -536,6 +785,16 @@ func (*awsAwsquery_serializeOpGetQueueUrl) ID() string {
 }
 
 func (m *awsAwsquery_serializeOpGetQueueUrl) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+=======
+type awsAwsjson10_serializeOpGetQueueUrl struct {
+}
+
+func (*awsAwsjson10_serializeOpGetQueueUrl) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsjson10_serializeOpGetQueueUrl) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
 ) {
 	request, ok := in.Request.(*smithyhttp.Request)
@@ -563,6 +822,7 @@ func (m *awsAwsquery_serializeOpGetQueueUrl) HandleSerialize(ctx context.Context
 	if err != nil {
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
+<<<<<<< HEAD
 	httpBindingEncoder.SetHeader("Content-Type").String("application/x-www-form-urlencoded")
 
 	bodyWriter := bytes.NewBuffer(nil)
@@ -581,6 +841,17 @@ func (m *awsAwsquery_serializeOpGetQueueUrl) HandleSerialize(ctx context.Context
 	}
 
 	if request, err = request.SetStream(bytes.NewReader(bodyWriter.Bytes())); err != nil {
+=======
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-amz-json-1.0")
+	httpBindingEncoder.SetHeader("X-Amz-Target").String("AmazonSQS.GetQueueUrl")
+
+	jsonEncoder := smithyjson.NewEncoder()
+	if err := awsAwsjson10_serializeOpDocumentGetQueueUrlInput(input, jsonEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(jsonEncoder.Bytes())); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
 
@@ -592,6 +863,7 @@ func (m *awsAwsquery_serializeOpGetQueueUrl) HandleSerialize(ctx context.Context
 	return next.HandleSerialize(ctx, in)
 }
 
+<<<<<<< HEAD
 type awsAwsquery_serializeOpListDeadLetterSourceQueues struct {
 }
 
@@ -600,6 +872,16 @@ func (*awsAwsquery_serializeOpListDeadLetterSourceQueues) ID() string {
 }
 
 func (m *awsAwsquery_serializeOpListDeadLetterSourceQueues) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+=======
+type awsAwsjson10_serializeOpListDeadLetterSourceQueues struct {
+}
+
+func (*awsAwsjson10_serializeOpListDeadLetterSourceQueues) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsjson10_serializeOpListDeadLetterSourceQueues) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
 ) {
 	request, ok := in.Request.(*smithyhttp.Request)
@@ -627,6 +909,7 @@ func (m *awsAwsquery_serializeOpListDeadLetterSourceQueues) HandleSerialize(ctx 
 	if err != nil {
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
+<<<<<<< HEAD
 	httpBindingEncoder.SetHeader("Content-Type").String("application/x-www-form-urlencoded")
 
 	bodyWriter := bytes.NewBuffer(nil)
@@ -645,6 +928,17 @@ func (m *awsAwsquery_serializeOpListDeadLetterSourceQueues) HandleSerialize(ctx 
 	}
 
 	if request, err = request.SetStream(bytes.NewReader(bodyWriter.Bytes())); err != nil {
+=======
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-amz-json-1.0")
+	httpBindingEncoder.SetHeader("X-Amz-Target").String("AmazonSQS.ListDeadLetterSourceQueues")
+
+	jsonEncoder := smithyjson.NewEncoder()
+	if err := awsAwsjson10_serializeOpDocumentListDeadLetterSourceQueuesInput(input, jsonEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(jsonEncoder.Bytes())); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
 
@@ -656,6 +950,7 @@ func (m *awsAwsquery_serializeOpListDeadLetterSourceQueues) HandleSerialize(ctx 
 	return next.HandleSerialize(ctx, in)
 }
 
+<<<<<<< HEAD
 type awsAwsquery_serializeOpListQueues struct {
 }
 
@@ -664,6 +959,71 @@ func (*awsAwsquery_serializeOpListQueues) ID() string {
 }
 
 func (m *awsAwsquery_serializeOpListQueues) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+=======
+type awsAwsjson10_serializeOpListMessageMoveTasks struct {
+}
+
+func (*awsAwsjson10_serializeOpListMessageMoveTasks) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsjson10_serializeOpListMessageMoveTasks) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
+) {
+	request, ok := in.Request.(*smithyhttp.Request)
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown transport type %T", in.Request)}
+	}
+
+	input, ok := in.Parameters.(*ListMessageMoveTasksInput)
+	_ = input
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown input parameters type %T", in.Parameters)}
+	}
+
+	operationPath := "/"
+	if len(request.Request.URL.Path) == 0 {
+		request.Request.URL.Path = operationPath
+	} else {
+		request.Request.URL.Path = path.Join(request.Request.URL.Path, operationPath)
+		if request.Request.URL.Path != "/" && operationPath[len(operationPath)-1] == '/' {
+			request.Request.URL.Path += "/"
+		}
+	}
+	request.Request.Method = "POST"
+	httpBindingEncoder, err := httpbinding.NewEncoder(request.URL.Path, request.URL.RawQuery, request.Header)
+	if err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-amz-json-1.0")
+	httpBindingEncoder.SetHeader("X-Amz-Target").String("AmazonSQS.ListMessageMoveTasks")
+
+	jsonEncoder := smithyjson.NewEncoder()
+	if err := awsAwsjson10_serializeOpDocumentListMessageMoveTasksInput(input, jsonEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(jsonEncoder.Bytes())); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request.Request, err = httpBindingEncoder.Encode(request.Request); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	in.Request = request
+
+	return next.HandleSerialize(ctx, in)
+}
+
+type awsAwsjson10_serializeOpListQueues struct {
+}
+
+func (*awsAwsjson10_serializeOpListQueues) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsjson10_serializeOpListQueues) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
 ) {
 	request, ok := in.Request.(*smithyhttp.Request)
@@ -691,6 +1051,7 @@ func (m *awsAwsquery_serializeOpListQueues) HandleSerialize(ctx context.Context,
 	if err != nil {
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
+<<<<<<< HEAD
 	httpBindingEncoder.SetHeader("Content-Type").String("application/x-www-form-urlencoded")
 
 	bodyWriter := bytes.NewBuffer(nil)
@@ -709,6 +1070,17 @@ func (m *awsAwsquery_serializeOpListQueues) HandleSerialize(ctx context.Context,
 	}
 
 	if request, err = request.SetStream(bytes.NewReader(bodyWriter.Bytes())); err != nil {
+=======
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-amz-json-1.0")
+	httpBindingEncoder.SetHeader("X-Amz-Target").String("AmazonSQS.ListQueues")
+
+	jsonEncoder := smithyjson.NewEncoder()
+	if err := awsAwsjson10_serializeOpDocumentListQueuesInput(input, jsonEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(jsonEncoder.Bytes())); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
 
@@ -720,6 +1092,7 @@ func (m *awsAwsquery_serializeOpListQueues) HandleSerialize(ctx context.Context,
 	return next.HandleSerialize(ctx, in)
 }
 
+<<<<<<< HEAD
 type awsAwsquery_serializeOpListQueueTags struct {
 }
 
@@ -728,6 +1101,16 @@ func (*awsAwsquery_serializeOpListQueueTags) ID() string {
 }
 
 func (m *awsAwsquery_serializeOpListQueueTags) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+=======
+type awsAwsjson10_serializeOpListQueueTags struct {
+}
+
+func (*awsAwsjson10_serializeOpListQueueTags) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsjson10_serializeOpListQueueTags) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
 ) {
 	request, ok := in.Request.(*smithyhttp.Request)
@@ -755,6 +1138,7 @@ func (m *awsAwsquery_serializeOpListQueueTags) HandleSerialize(ctx context.Conte
 	if err != nil {
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
+<<<<<<< HEAD
 	httpBindingEncoder.SetHeader("Content-Type").String("application/x-www-form-urlencoded")
 
 	bodyWriter := bytes.NewBuffer(nil)
@@ -773,6 +1157,17 @@ func (m *awsAwsquery_serializeOpListQueueTags) HandleSerialize(ctx context.Conte
 	}
 
 	if request, err = request.SetStream(bytes.NewReader(bodyWriter.Bytes())); err != nil {
+=======
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-amz-json-1.0")
+	httpBindingEncoder.SetHeader("X-Amz-Target").String("AmazonSQS.ListQueueTags")
+
+	jsonEncoder := smithyjson.NewEncoder()
+	if err := awsAwsjson10_serializeOpDocumentListQueueTagsInput(input, jsonEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(jsonEncoder.Bytes())); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
 
@@ -784,6 +1179,7 @@ func (m *awsAwsquery_serializeOpListQueueTags) HandleSerialize(ctx context.Conte
 	return next.HandleSerialize(ctx, in)
 }
 
+<<<<<<< HEAD
 type awsAwsquery_serializeOpPurgeQueue struct {
 }
 
@@ -792,6 +1188,16 @@ func (*awsAwsquery_serializeOpPurgeQueue) ID() string {
 }
 
 func (m *awsAwsquery_serializeOpPurgeQueue) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+=======
+type awsAwsjson10_serializeOpPurgeQueue struct {
+}
+
+func (*awsAwsjson10_serializeOpPurgeQueue) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsjson10_serializeOpPurgeQueue) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
 ) {
 	request, ok := in.Request.(*smithyhttp.Request)
@@ -819,6 +1225,7 @@ func (m *awsAwsquery_serializeOpPurgeQueue) HandleSerialize(ctx context.Context,
 	if err != nil {
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
+<<<<<<< HEAD
 	httpBindingEncoder.SetHeader("Content-Type").String("application/x-www-form-urlencoded")
 
 	bodyWriter := bytes.NewBuffer(nil)
@@ -837,6 +1244,17 @@ func (m *awsAwsquery_serializeOpPurgeQueue) HandleSerialize(ctx context.Context,
 	}
 
 	if request, err = request.SetStream(bytes.NewReader(bodyWriter.Bytes())); err != nil {
+=======
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-amz-json-1.0")
+	httpBindingEncoder.SetHeader("X-Amz-Target").String("AmazonSQS.PurgeQueue")
+
+	jsonEncoder := smithyjson.NewEncoder()
+	if err := awsAwsjson10_serializeOpDocumentPurgeQueueInput(input, jsonEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(jsonEncoder.Bytes())); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
 
@@ -848,6 +1266,7 @@ func (m *awsAwsquery_serializeOpPurgeQueue) HandleSerialize(ctx context.Context,
 	return next.HandleSerialize(ctx, in)
 }
 
+<<<<<<< HEAD
 type awsAwsquery_serializeOpReceiveMessage struct {
 }
 
@@ -856,6 +1275,16 @@ func (*awsAwsquery_serializeOpReceiveMessage) ID() string {
 }
 
 func (m *awsAwsquery_serializeOpReceiveMessage) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+=======
+type awsAwsjson10_serializeOpReceiveMessage struct {
+}
+
+func (*awsAwsjson10_serializeOpReceiveMessage) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsjson10_serializeOpReceiveMessage) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
 ) {
 	request, ok := in.Request.(*smithyhttp.Request)
@@ -883,6 +1312,7 @@ func (m *awsAwsquery_serializeOpReceiveMessage) HandleSerialize(ctx context.Cont
 	if err != nil {
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
+<<<<<<< HEAD
 	httpBindingEncoder.SetHeader("Content-Type").String("application/x-www-form-urlencoded")
 
 	bodyWriter := bytes.NewBuffer(nil)
@@ -901,6 +1331,17 @@ func (m *awsAwsquery_serializeOpReceiveMessage) HandleSerialize(ctx context.Cont
 	}
 
 	if request, err = request.SetStream(bytes.NewReader(bodyWriter.Bytes())); err != nil {
+=======
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-amz-json-1.0")
+	httpBindingEncoder.SetHeader("X-Amz-Target").String("AmazonSQS.ReceiveMessage")
+
+	jsonEncoder := smithyjson.NewEncoder()
+	if err := awsAwsjson10_serializeOpDocumentReceiveMessageInput(input, jsonEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(jsonEncoder.Bytes())); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
 
@@ -912,6 +1353,7 @@ func (m *awsAwsquery_serializeOpReceiveMessage) HandleSerialize(ctx context.Cont
 	return next.HandleSerialize(ctx, in)
 }
 
+<<<<<<< HEAD
 type awsAwsquery_serializeOpRemovePermission struct {
 }
 
@@ -920,6 +1362,16 @@ func (*awsAwsquery_serializeOpRemovePermission) ID() string {
 }
 
 func (m *awsAwsquery_serializeOpRemovePermission) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+=======
+type awsAwsjson10_serializeOpRemovePermission struct {
+}
+
+func (*awsAwsjson10_serializeOpRemovePermission) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsjson10_serializeOpRemovePermission) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
 ) {
 	request, ok := in.Request.(*smithyhttp.Request)
@@ -947,6 +1399,7 @@ func (m *awsAwsquery_serializeOpRemovePermission) HandleSerialize(ctx context.Co
 	if err != nil {
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
+<<<<<<< HEAD
 	httpBindingEncoder.SetHeader("Content-Type").String("application/x-www-form-urlencoded")
 
 	bodyWriter := bytes.NewBuffer(nil)
@@ -965,6 +1418,17 @@ func (m *awsAwsquery_serializeOpRemovePermission) HandleSerialize(ctx context.Co
 	}
 
 	if request, err = request.SetStream(bytes.NewReader(bodyWriter.Bytes())); err != nil {
+=======
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-amz-json-1.0")
+	httpBindingEncoder.SetHeader("X-Amz-Target").String("AmazonSQS.RemovePermission")
+
+	jsonEncoder := smithyjson.NewEncoder()
+	if err := awsAwsjson10_serializeOpDocumentRemovePermissionInput(input, jsonEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(jsonEncoder.Bytes())); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
 
@@ -976,6 +1440,7 @@ func (m *awsAwsquery_serializeOpRemovePermission) HandleSerialize(ctx context.Co
 	return next.HandleSerialize(ctx, in)
 }
 
+<<<<<<< HEAD
 type awsAwsquery_serializeOpSendMessage struct {
 }
 
@@ -984,6 +1449,16 @@ func (*awsAwsquery_serializeOpSendMessage) ID() string {
 }
 
 func (m *awsAwsquery_serializeOpSendMessage) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+=======
+type awsAwsjson10_serializeOpSendMessage struct {
+}
+
+func (*awsAwsjson10_serializeOpSendMessage) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsjson10_serializeOpSendMessage) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
 ) {
 	request, ok := in.Request.(*smithyhttp.Request)
@@ -1011,6 +1486,7 @@ func (m *awsAwsquery_serializeOpSendMessage) HandleSerialize(ctx context.Context
 	if err != nil {
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
+<<<<<<< HEAD
 	httpBindingEncoder.SetHeader("Content-Type").String("application/x-www-form-urlencoded")
 
 	bodyWriter := bytes.NewBuffer(nil)
@@ -1029,6 +1505,17 @@ func (m *awsAwsquery_serializeOpSendMessage) HandleSerialize(ctx context.Context
 	}
 
 	if request, err = request.SetStream(bytes.NewReader(bodyWriter.Bytes())); err != nil {
+=======
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-amz-json-1.0")
+	httpBindingEncoder.SetHeader("X-Amz-Target").String("AmazonSQS.SendMessage")
+
+	jsonEncoder := smithyjson.NewEncoder()
+	if err := awsAwsjson10_serializeOpDocumentSendMessageInput(input, jsonEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(jsonEncoder.Bytes())); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
 
@@ -1040,6 +1527,7 @@ func (m *awsAwsquery_serializeOpSendMessage) HandleSerialize(ctx context.Context
 	return next.HandleSerialize(ctx, in)
 }
 
+<<<<<<< HEAD
 type awsAwsquery_serializeOpSendMessageBatch struct {
 }
 
@@ -1048,6 +1536,16 @@ func (*awsAwsquery_serializeOpSendMessageBatch) ID() string {
 }
 
 func (m *awsAwsquery_serializeOpSendMessageBatch) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+=======
+type awsAwsjson10_serializeOpSendMessageBatch struct {
+}
+
+func (*awsAwsjson10_serializeOpSendMessageBatch) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsjson10_serializeOpSendMessageBatch) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
 ) {
 	request, ok := in.Request.(*smithyhttp.Request)
@@ -1075,6 +1573,7 @@ func (m *awsAwsquery_serializeOpSendMessageBatch) HandleSerialize(ctx context.Co
 	if err != nil {
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
+<<<<<<< HEAD
 	httpBindingEncoder.SetHeader("Content-Type").String("application/x-www-form-urlencoded")
 
 	bodyWriter := bytes.NewBuffer(nil)
@@ -1093,6 +1592,17 @@ func (m *awsAwsquery_serializeOpSendMessageBatch) HandleSerialize(ctx context.Co
 	}
 
 	if request, err = request.SetStream(bytes.NewReader(bodyWriter.Bytes())); err != nil {
+=======
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-amz-json-1.0")
+	httpBindingEncoder.SetHeader("X-Amz-Target").String("AmazonSQS.SendMessageBatch")
+
+	jsonEncoder := smithyjson.NewEncoder()
+	if err := awsAwsjson10_serializeOpDocumentSendMessageBatchInput(input, jsonEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(jsonEncoder.Bytes())); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
 
@@ -1104,6 +1614,7 @@ func (m *awsAwsquery_serializeOpSendMessageBatch) HandleSerialize(ctx context.Co
 	return next.HandleSerialize(ctx, in)
 }
 
+<<<<<<< HEAD
 type awsAwsquery_serializeOpSetQueueAttributes struct {
 }
 
@@ -1112,6 +1623,16 @@ func (*awsAwsquery_serializeOpSetQueueAttributes) ID() string {
 }
 
 func (m *awsAwsquery_serializeOpSetQueueAttributes) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+=======
+type awsAwsjson10_serializeOpSetQueueAttributes struct {
+}
+
+func (*awsAwsjson10_serializeOpSetQueueAttributes) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsjson10_serializeOpSetQueueAttributes) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
 ) {
 	request, ok := in.Request.(*smithyhttp.Request)
@@ -1139,6 +1660,7 @@ func (m *awsAwsquery_serializeOpSetQueueAttributes) HandleSerialize(ctx context.
 	if err != nil {
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
+<<<<<<< HEAD
 	httpBindingEncoder.SetHeader("Content-Type").String("application/x-www-form-urlencoded")
 
 	bodyWriter := bytes.NewBuffer(nil)
@@ -1157,6 +1679,17 @@ func (m *awsAwsquery_serializeOpSetQueueAttributes) HandleSerialize(ctx context.
 	}
 
 	if request, err = request.SetStream(bytes.NewReader(bodyWriter.Bytes())); err != nil {
+=======
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-amz-json-1.0")
+	httpBindingEncoder.SetHeader("X-Amz-Target").String("AmazonSQS.SetQueueAttributes")
+
+	jsonEncoder := smithyjson.NewEncoder()
+	if err := awsAwsjson10_serializeOpDocumentSetQueueAttributesInput(input, jsonEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(jsonEncoder.Bytes())); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
 
@@ -1168,6 +1701,7 @@ func (m *awsAwsquery_serializeOpSetQueueAttributes) HandleSerialize(ctx context.
 	return next.HandleSerialize(ctx, in)
 }
 
+<<<<<<< HEAD
 type awsAwsquery_serializeOpTagQueue struct {
 }
 
@@ -1176,6 +1710,71 @@ func (*awsAwsquery_serializeOpTagQueue) ID() string {
 }
 
 func (m *awsAwsquery_serializeOpTagQueue) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+=======
+type awsAwsjson10_serializeOpStartMessageMoveTask struct {
+}
+
+func (*awsAwsjson10_serializeOpStartMessageMoveTask) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsjson10_serializeOpStartMessageMoveTask) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
+) {
+	request, ok := in.Request.(*smithyhttp.Request)
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown transport type %T", in.Request)}
+	}
+
+	input, ok := in.Parameters.(*StartMessageMoveTaskInput)
+	_ = input
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown input parameters type %T", in.Parameters)}
+	}
+
+	operationPath := "/"
+	if len(request.Request.URL.Path) == 0 {
+		request.Request.URL.Path = operationPath
+	} else {
+		request.Request.URL.Path = path.Join(request.Request.URL.Path, operationPath)
+		if request.Request.URL.Path != "/" && operationPath[len(operationPath)-1] == '/' {
+			request.Request.URL.Path += "/"
+		}
+	}
+	request.Request.Method = "POST"
+	httpBindingEncoder, err := httpbinding.NewEncoder(request.URL.Path, request.URL.RawQuery, request.Header)
+	if err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-amz-json-1.0")
+	httpBindingEncoder.SetHeader("X-Amz-Target").String("AmazonSQS.StartMessageMoveTask")
+
+	jsonEncoder := smithyjson.NewEncoder()
+	if err := awsAwsjson10_serializeOpDocumentStartMessageMoveTaskInput(input, jsonEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(jsonEncoder.Bytes())); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request.Request, err = httpBindingEncoder.Encode(request.Request); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	in.Request = request
+
+	return next.HandleSerialize(ctx, in)
+}
+
+type awsAwsjson10_serializeOpTagQueue struct {
+}
+
+func (*awsAwsjson10_serializeOpTagQueue) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsjson10_serializeOpTagQueue) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
 ) {
 	request, ok := in.Request.(*smithyhttp.Request)
@@ -1203,6 +1802,7 @@ func (m *awsAwsquery_serializeOpTagQueue) HandleSerialize(ctx context.Context, i
 	if err != nil {
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
+<<<<<<< HEAD
 	httpBindingEncoder.SetHeader("Content-Type").String("application/x-www-form-urlencoded")
 
 	bodyWriter := bytes.NewBuffer(nil)
@@ -1221,6 +1821,17 @@ func (m *awsAwsquery_serializeOpTagQueue) HandleSerialize(ctx context.Context, i
 	}
 
 	if request, err = request.SetStream(bytes.NewReader(bodyWriter.Bytes())); err != nil {
+=======
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-amz-json-1.0")
+	httpBindingEncoder.SetHeader("X-Amz-Target").String("AmazonSQS.TagQueue")
+
+	jsonEncoder := smithyjson.NewEncoder()
+	if err := awsAwsjson10_serializeOpDocumentTagQueueInput(input, jsonEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(jsonEncoder.Bytes())); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
 
@@ -1232,6 +1843,7 @@ func (m *awsAwsquery_serializeOpTagQueue) HandleSerialize(ctx context.Context, i
 	return next.HandleSerialize(ctx, in)
 }
 
+<<<<<<< HEAD
 type awsAwsquery_serializeOpUntagQueue struct {
 }
 
@@ -1240,6 +1852,16 @@ func (*awsAwsquery_serializeOpUntagQueue) ID() string {
 }
 
 func (m *awsAwsquery_serializeOpUntagQueue) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+=======
+type awsAwsjson10_serializeOpUntagQueue struct {
+}
+
+func (*awsAwsjson10_serializeOpUntagQueue) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsjson10_serializeOpUntagQueue) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
 ) {
 	request, ok := in.Request.(*smithyhttp.Request)
@@ -1267,6 +1889,7 @@ func (m *awsAwsquery_serializeOpUntagQueue) HandleSerialize(ctx context.Context,
 	if err != nil {
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
+<<<<<<< HEAD
 	httpBindingEncoder.SetHeader("Content-Type").String("application/x-www-form-urlencoded")
 
 	bodyWriter := bytes.NewBuffer(nil)
@@ -1285,6 +1908,17 @@ func (m *awsAwsquery_serializeOpUntagQueue) HandleSerialize(ctx context.Context,
 	}
 
 	if request, err = request.SetStream(bytes.NewReader(bodyWriter.Bytes())); err != nil {
+=======
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-amz-json-1.0")
+	httpBindingEncoder.SetHeader("X-Amz-Target").String("AmazonSQS.UntagQueue")
+
+	jsonEncoder := smithyjson.NewEncoder()
+	if err := awsAwsjson10_serializeOpDocumentUntagQueueInput(input, jsonEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(jsonEncoder.Bytes())); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
 
@@ -1295,11 +1929,17 @@ func (m *awsAwsquery_serializeOpUntagQueue) HandleSerialize(ctx context.Context,
 
 	return next.HandleSerialize(ctx, in)
 }
+<<<<<<< HEAD
 func awsAwsquery_serializeDocumentActionNameList(v []string, value query.Value) error {
 	if len(v) == 0 {
 		return nil
 	}
 	array := value.Array("member")
+=======
+func awsAwsjson10_serializeDocumentActionNameList(v []string, value smithyjson.Value) error {
+	array := value.Array()
+	defer array.Close()
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 
 	for i := range v {
 		av := array.Value()
@@ -1308,11 +1948,17 @@ func awsAwsquery_serializeDocumentActionNameList(v []string, value query.Value) 
 	return nil
 }
 
+<<<<<<< HEAD
 func awsAwsquery_serializeDocumentAttributeNameList(v []types.QueueAttributeName, value query.Value) error {
 	if len(v) == 0 {
 		return nil
 	}
 	array := value.Array("member")
+=======
+func awsAwsjson10_serializeDocumentAttributeNameList(v []types.QueueAttributeName, value smithyjson.Value) error {
+	array := value.Array()
+	defer array.Close()
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 
 	for i := range v {
 		av := array.Value()
@@ -1321,11 +1967,17 @@ func awsAwsquery_serializeDocumentAttributeNameList(v []types.QueueAttributeName
 	return nil
 }
 
+<<<<<<< HEAD
 func awsAwsquery_serializeDocumentAWSAccountIdList(v []string, value query.Value) error {
 	if len(v) == 0 {
 		return nil
 	}
 	array := value.Array("member")
+=======
+func awsAwsjson10_serializeDocumentAWSAccountIdList(v []string, value smithyjson.Value) error {
+	array := value.Array()
+	defer array.Close()
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 
 	for i := range v {
 		av := array.Value()
@@ -1334,6 +1986,7 @@ func awsAwsquery_serializeDocumentAWSAccountIdList(v []string, value query.Value
 	return nil
 }
 
+<<<<<<< HEAD
 func awsAwsquery_serializeDocumentBinaryList(v [][]byte, value query.Value) error {
 	if len(v) == 0 {
 		return nil
@@ -1345,11 +1998,23 @@ func awsAwsquery_serializeDocumentBinaryList(v [][]byte, value query.Value) erro
 			continue
 		}
 		av := array.Value()
+=======
+func awsAwsjson10_serializeDocumentBinaryList(v [][]byte, value smithyjson.Value) error {
+	array := value.Array()
+	defer array.Close()
+
+	for i := range v {
+		av := array.Value()
+		if vv := v[i]; vv == nil {
+			continue
+		}
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 		av.Base64EncodeBytes(v[i])
 	}
 	return nil
 }
 
+<<<<<<< HEAD
 func awsAwsquery_serializeDocumentChangeMessageVisibilityBatchRequestEntry(v *types.ChangeMessageVisibilityBatchRequestEntry, value query.Value) error {
 	object := value.Object()
 	_ = object
@@ -1367,11 +2032,31 @@ func awsAwsquery_serializeDocumentChangeMessageVisibilityBatchRequestEntry(v *ty
 	if v.VisibilityTimeout != 0 {
 		objectKey := object.Key("VisibilityTimeout")
 		objectKey.Integer(v.VisibilityTimeout)
+=======
+func awsAwsjson10_serializeDocumentChangeMessageVisibilityBatchRequestEntry(v *types.ChangeMessageVisibilityBatchRequestEntry, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	if v.Id != nil {
+		ok := object.Key("Id")
+		ok.String(*v.Id)
+	}
+
+	if v.ReceiptHandle != nil {
+		ok := object.Key("ReceiptHandle")
+		ok.String(*v.ReceiptHandle)
+	}
+
+	if v.VisibilityTimeout != 0 {
+		ok := object.Key("VisibilityTimeout")
+		ok.Integer(v.VisibilityTimeout)
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	}
 
 	return nil
 }
 
+<<<<<<< HEAD
 func awsAwsquery_serializeDocumentChangeMessageVisibilityBatchRequestEntryList(v []types.ChangeMessageVisibilityBatchRequestEntry, value query.Value) error {
 	if len(v) == 0 {
 		return nil
@@ -1381,12 +2066,22 @@ func awsAwsquery_serializeDocumentChangeMessageVisibilityBatchRequestEntryList(v
 	for i := range v {
 		av := array.Value()
 		if err := awsAwsquery_serializeDocumentChangeMessageVisibilityBatchRequestEntry(&v[i], av); err != nil {
+=======
+func awsAwsjson10_serializeDocumentChangeMessageVisibilityBatchRequestEntryList(v []types.ChangeMessageVisibilityBatchRequestEntry, value smithyjson.Value) error {
+	array := value.Array()
+	defer array.Close()
+
+	for i := range v {
+		av := array.Value()
+		if err := awsAwsjson10_serializeDocumentChangeMessageVisibilityBatchRequestEntry(&v[i], av); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 			return err
 		}
 	}
 	return nil
 }
 
+<<<<<<< HEAD
 func awsAwsquery_serializeDocumentDeleteMessageBatchRequestEntry(v *types.DeleteMessageBatchRequestEntry, value query.Value) error {
 	object := value.Object()
 	_ = object
@@ -1399,11 +2094,26 @@ func awsAwsquery_serializeDocumentDeleteMessageBatchRequestEntry(v *types.Delete
 	if v.ReceiptHandle != nil {
 		objectKey := object.Key("ReceiptHandle")
 		objectKey.String(*v.ReceiptHandle)
+=======
+func awsAwsjson10_serializeDocumentDeleteMessageBatchRequestEntry(v *types.DeleteMessageBatchRequestEntry, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	if v.Id != nil {
+		ok := object.Key("Id")
+		ok.String(*v.Id)
+	}
+
+	if v.ReceiptHandle != nil {
+		ok := object.Key("ReceiptHandle")
+		ok.String(*v.ReceiptHandle)
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	}
 
 	return nil
 }
 
+<<<<<<< HEAD
 func awsAwsquery_serializeDocumentDeleteMessageBatchRequestEntryList(v []types.DeleteMessageBatchRequestEntry, value query.Value) error {
 	if len(v) == 0 {
 		return nil
@@ -1413,17 +2123,32 @@ func awsAwsquery_serializeDocumentDeleteMessageBatchRequestEntryList(v []types.D
 	for i := range v {
 		av := array.Value()
 		if err := awsAwsquery_serializeDocumentDeleteMessageBatchRequestEntry(&v[i], av); err != nil {
+=======
+func awsAwsjson10_serializeDocumentDeleteMessageBatchRequestEntryList(v []types.DeleteMessageBatchRequestEntry, value smithyjson.Value) error {
+	array := value.Array()
+	defer array.Close()
+
+	for i := range v {
+		av := array.Value()
+		if err := awsAwsjson10_serializeDocumentDeleteMessageBatchRequestEntry(&v[i], av); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 			return err
 		}
 	}
 	return nil
 }
 
+<<<<<<< HEAD
 func awsAwsquery_serializeDocumentMessageAttributeNameList(v []string, value query.Value) error {
 	if len(v) == 0 {
 		return nil
 	}
 	array := value.Array("member")
+=======
+func awsAwsjson10_serializeDocumentMessageAttributeNameList(v []string, value smithyjson.Value) error {
+	array := value.Array()
+	defer array.Close()
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 
 	for i := range v {
 		av := array.Value()
@@ -1432,6 +2157,7 @@ func awsAwsquery_serializeDocumentMessageAttributeNameList(v []string, value que
 	return nil
 }
 
+<<<<<<< HEAD
 func awsAwsquery_serializeDocumentMessageAttributeValue(v *types.MessageAttributeValue, value query.Value) error {
 	object := value.Object()
 	_ = object
@@ -1439,11 +2165,21 @@ func awsAwsquery_serializeDocumentMessageAttributeValue(v *types.MessageAttribut
 	if v.BinaryListValues != nil {
 		objectKey := object.FlatKey("BinaryListValue")
 		if err := awsAwsquery_serializeDocumentBinaryList(v.BinaryListValues, objectKey); err != nil {
+=======
+func awsAwsjson10_serializeDocumentMessageAttributeValue(v *types.MessageAttributeValue, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	if v.BinaryListValues != nil {
+		ok := object.Key("BinaryListValues")
+		if err := awsAwsjson10_serializeDocumentBinaryList(v.BinaryListValues, ok); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 			return err
 		}
 	}
 
 	if v.BinaryValue != nil {
+<<<<<<< HEAD
 		objectKey := object.Key("BinaryValue")
 		objectKey.Base64EncodeBytes(v.BinaryValue)
 	}
@@ -1456,18 +2192,38 @@ func awsAwsquery_serializeDocumentMessageAttributeValue(v *types.MessageAttribut
 	if v.StringListValues != nil {
 		objectKey := object.FlatKey("StringListValue")
 		if err := awsAwsquery_serializeDocumentStringList(v.StringListValues, objectKey); err != nil {
+=======
+		ok := object.Key("BinaryValue")
+		ok.Base64EncodeBytes(v.BinaryValue)
+	}
+
+	if v.DataType != nil {
+		ok := object.Key("DataType")
+		ok.String(*v.DataType)
+	}
+
+	if v.StringListValues != nil {
+		ok := object.Key("StringListValues")
+		if err := awsAwsjson10_serializeDocumentStringList(v.StringListValues, ok); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 			return err
 		}
 	}
 
 	if v.StringValue != nil {
+<<<<<<< HEAD
 		objectKey := object.Key("StringValue")
 		objectKey.String(*v.StringValue)
+=======
+		ok := object.Key("StringValue")
+		ok.String(*v.StringValue)
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	}
 
 	return nil
 }
 
+<<<<<<< HEAD
 func awsAwsquery_serializeDocumentMessageBodyAttributeMap(v map[string]types.MessageAttributeValue, value query.Value) error {
 	if len(v) == 0 {
 		return nil
@@ -1519,11 +2275,49 @@ func awsAwsquery_serializeDocumentMessageSystemAttributeValue(v *types.MessageSy
 	if v.BinaryListValues != nil {
 		objectKey := object.FlatKey("BinaryListValue")
 		if err := awsAwsquery_serializeDocumentBinaryList(v.BinaryListValues, objectKey); err != nil {
+=======
+func awsAwsjson10_serializeDocumentMessageBodyAttributeMap(v map[string]types.MessageAttributeValue, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	for key := range v {
+		om := object.Key(key)
+		mapVar := v[key]
+		if err := awsAwsjson10_serializeDocumentMessageAttributeValue(&mapVar, om); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func awsAwsjson10_serializeDocumentMessageBodySystemAttributeMap(v map[string]types.MessageSystemAttributeValue, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	for key := range v {
+		om := object.Key(key)
+		mapVar := v[key]
+		if err := awsAwsjson10_serializeDocumentMessageSystemAttributeValue(&mapVar, om); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func awsAwsjson10_serializeDocumentMessageSystemAttributeValue(v *types.MessageSystemAttributeValue, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	if v.BinaryListValues != nil {
+		ok := object.Key("BinaryListValues")
+		if err := awsAwsjson10_serializeDocumentBinaryList(v.BinaryListValues, ok); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 			return err
 		}
 	}
 
 	if v.BinaryValue != nil {
+<<<<<<< HEAD
 		objectKey := object.Key("BinaryValue")
 		objectKey.Base64EncodeBytes(v.BinaryValue)
 	}
@@ -1536,18 +2330,38 @@ func awsAwsquery_serializeDocumentMessageSystemAttributeValue(v *types.MessageSy
 	if v.StringListValues != nil {
 		objectKey := object.FlatKey("StringListValue")
 		if err := awsAwsquery_serializeDocumentStringList(v.StringListValues, objectKey); err != nil {
+=======
+		ok := object.Key("BinaryValue")
+		ok.Base64EncodeBytes(v.BinaryValue)
+	}
+
+	if v.DataType != nil {
+		ok := object.Key("DataType")
+		ok.String(*v.DataType)
+	}
+
+	if v.StringListValues != nil {
+		ok := object.Key("StringListValues")
+		if err := awsAwsjson10_serializeDocumentStringList(v.StringListValues, ok); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 			return err
 		}
 	}
 
 	if v.StringValue != nil {
+<<<<<<< HEAD
 		objectKey := object.Key("StringValue")
 		objectKey.String(*v.StringValue)
+=======
+		ok := object.Key("StringValue")
+		ok.String(*v.StringValue)
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	}
 
 	return nil
 }
 
+<<<<<<< HEAD
 func awsAwsquery_serializeDocumentQueueAttributeMap(v map[string]string, value query.Value) error {
 	if len(v) == 0 {
 		return nil
@@ -1561,12 +2375,20 @@ func awsAwsquery_serializeDocumentQueueAttributeMap(v map[string]string, value q
 	sort.Strings(keys)
 
 	for _, key := range keys {
+=======
+func awsAwsjson10_serializeDocumentQueueAttributeMap(v map[string]string, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	for key := range v {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 		om := object.Key(key)
 		om.String(v[key])
 	}
 	return nil
 }
 
+<<<<<<< HEAD
 func awsAwsquery_serializeDocumentSendMessageBatchRequestEntry(v *types.SendMessageBatchRequestEntry, value query.Value) error {
 	object := value.Object()
 	_ = object
@@ -1584,11 +2406,31 @@ func awsAwsquery_serializeDocumentSendMessageBatchRequestEntry(v *types.SendMess
 	if v.MessageAttributes != nil {
 		objectKey := object.FlatKey("MessageAttribute")
 		if err := awsAwsquery_serializeDocumentMessageBodyAttributeMap(v.MessageAttributes, objectKey); err != nil {
+=======
+func awsAwsjson10_serializeDocumentSendMessageBatchRequestEntry(v *types.SendMessageBatchRequestEntry, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	if v.DelaySeconds != 0 {
+		ok := object.Key("DelaySeconds")
+		ok.Integer(v.DelaySeconds)
+	}
+
+	if v.Id != nil {
+		ok := object.Key("Id")
+		ok.String(*v.Id)
+	}
+
+	if v.MessageAttributes != nil {
+		ok := object.Key("MessageAttributes")
+		if err := awsAwsjson10_serializeDocumentMessageBodyAttributeMap(v.MessageAttributes, ok); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 			return err
 		}
 	}
 
 	if v.MessageBody != nil {
+<<<<<<< HEAD
 		objectKey := object.Key("MessageBody")
 		objectKey.String(*v.MessageBody)
 	}
@@ -1606,6 +2448,25 @@ func awsAwsquery_serializeDocumentSendMessageBatchRequestEntry(v *types.SendMess
 	if v.MessageSystemAttributes != nil {
 		objectKey := object.FlatKey("MessageSystemAttribute")
 		if err := awsAwsquery_serializeDocumentMessageBodySystemAttributeMap(v.MessageSystemAttributes, objectKey); err != nil {
+=======
+		ok := object.Key("MessageBody")
+		ok.String(*v.MessageBody)
+	}
+
+	if v.MessageDeduplicationId != nil {
+		ok := object.Key("MessageDeduplicationId")
+		ok.String(*v.MessageDeduplicationId)
+	}
+
+	if v.MessageGroupId != nil {
+		ok := object.Key("MessageGroupId")
+		ok.String(*v.MessageGroupId)
+	}
+
+	if v.MessageSystemAttributes != nil {
+		ok := object.Key("MessageSystemAttributes")
+		if err := awsAwsjson10_serializeDocumentMessageBodySystemAttributeMap(v.MessageSystemAttributes, ok); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 			return err
 		}
 	}
@@ -1613,6 +2474,7 @@ func awsAwsquery_serializeDocumentSendMessageBatchRequestEntry(v *types.SendMess
 	return nil
 }
 
+<<<<<<< HEAD
 func awsAwsquery_serializeDocumentSendMessageBatchRequestEntryList(v []types.SendMessageBatchRequestEntry, value query.Value) error {
 	if len(v) == 0 {
 		return nil
@@ -1622,17 +2484,32 @@ func awsAwsquery_serializeDocumentSendMessageBatchRequestEntryList(v []types.Sen
 	for i := range v {
 		av := array.Value()
 		if err := awsAwsquery_serializeDocumentSendMessageBatchRequestEntry(&v[i], av); err != nil {
+=======
+func awsAwsjson10_serializeDocumentSendMessageBatchRequestEntryList(v []types.SendMessageBatchRequestEntry, value smithyjson.Value) error {
+	array := value.Array()
+	defer array.Close()
+
+	for i := range v {
+		av := array.Value()
+		if err := awsAwsjson10_serializeDocumentSendMessageBatchRequestEntry(&v[i], av); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 			return err
 		}
 	}
 	return nil
 }
 
+<<<<<<< HEAD
 func awsAwsquery_serializeDocumentStringList(v []string, value query.Value) error {
 	if len(v) == 0 {
 		return nil
 	}
 	array := value.Array("StringListValue")
+=======
+func awsAwsjson10_serializeDocumentStringList(v []string, value smithyjson.Value) error {
+	array := value.Array()
+	defer array.Close()
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 
 	for i := range v {
 		av := array.Value()
@@ -1641,11 +2518,17 @@ func awsAwsquery_serializeDocumentStringList(v []string, value query.Value) erro
 	return nil
 }
 
+<<<<<<< HEAD
 func awsAwsquery_serializeDocumentTagKeyList(v []string, value query.Value) error {
 	if len(v) == 0 {
 		return nil
 	}
 	array := value.Array("member")
+=======
+func awsAwsjson10_serializeDocumentTagKeyList(v []string, value smithyjson.Value) error {
+	array := value.Array()
+	defer array.Close()
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 
 	for i := range v {
 		av := array.Value()
@@ -1654,6 +2537,7 @@ func awsAwsquery_serializeDocumentTagKeyList(v []string, value query.Value) erro
 	return nil
 }
 
+<<<<<<< HEAD
 func awsAwsquery_serializeDocumentTagMap(v map[string]string, value query.Value) error {
 	if len(v) == 0 {
 		return nil
@@ -1667,12 +2551,20 @@ func awsAwsquery_serializeDocumentTagMap(v map[string]string, value query.Value)
 	sort.Strings(keys)
 
 	for _, key := range keys {
+=======
+func awsAwsjson10_serializeDocumentTagMap(v map[string]string, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	for key := range v {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 		om := object.Key(key)
 		om.String(v[key])
 	}
 	return nil
 }
 
+<<<<<<< HEAD
 func awsAwsquery_serializeOpDocumentAddPermissionInput(v *AddPermissionInput, value query.Value) error {
 	object := value.Object()
 	_ = object
@@ -1680,18 +2572,33 @@ func awsAwsquery_serializeOpDocumentAddPermissionInput(v *AddPermissionInput, va
 	if v.Actions != nil {
 		objectKey := object.FlatKey("ActionName")
 		if err := awsAwsquery_serializeDocumentActionNameList(v.Actions, objectKey); err != nil {
+=======
+func awsAwsjson10_serializeOpDocumentAddPermissionInput(v *AddPermissionInput, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	if v.Actions != nil {
+		ok := object.Key("Actions")
+		if err := awsAwsjson10_serializeDocumentActionNameList(v.Actions, ok); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 			return err
 		}
 	}
 
 	if v.AWSAccountIds != nil {
+<<<<<<< HEAD
 		objectKey := object.FlatKey("AWSAccountId")
 		if err := awsAwsquery_serializeDocumentAWSAccountIdList(v.AWSAccountIds, objectKey); err != nil {
+=======
+		ok := object.Key("AWSAccountIds")
+		if err := awsAwsjson10_serializeDocumentAWSAccountIdList(v.AWSAccountIds, ok); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 			return err
 		}
 	}
 
 	if v.Label != nil {
+<<<<<<< HEAD
 		objectKey := object.Key("Label")
 		objectKey.String(*v.Label)
 	}
@@ -1699,11 +2606,21 @@ func awsAwsquery_serializeOpDocumentAddPermissionInput(v *AddPermissionInput, va
 	if v.QueueUrl != nil {
 		objectKey := object.Key("QueueUrl")
 		objectKey.String(*v.QueueUrl)
+=======
+		ok := object.Key("Label")
+		ok.String(*v.Label)
+	}
+
+	if v.QueueUrl != nil {
+		ok := object.Key("QueueUrl")
+		ok.String(*v.QueueUrl)
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	}
 
 	return nil
 }
 
+<<<<<<< HEAD
 func awsAwsquery_serializeOpDocumentChangeMessageVisibilityBatchInput(v *ChangeMessageVisibilityBatchInput, value query.Value) error {
 	object := value.Object()
 	_ = object
@@ -1711,18 +2628,45 @@ func awsAwsquery_serializeOpDocumentChangeMessageVisibilityBatchInput(v *ChangeM
 	if v.Entries != nil {
 		objectKey := object.FlatKey("ChangeMessageVisibilityBatchRequestEntry")
 		if err := awsAwsquery_serializeDocumentChangeMessageVisibilityBatchRequestEntryList(v.Entries, objectKey); err != nil {
-			return err
-		}
-	}
+=======
+func awsAwsjson10_serializeOpDocumentCancelMessageMoveTaskInput(v *CancelMessageMoveTaskInput, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
 
-	if v.QueueUrl != nil {
-		objectKey := object.Key("QueueUrl")
-		objectKey.String(*v.QueueUrl)
+	if v.TaskHandle != nil {
+		ok := object.Key("TaskHandle")
+		ok.String(*v.TaskHandle)
 	}
 
 	return nil
 }
 
+func awsAwsjson10_serializeOpDocumentChangeMessageVisibilityBatchInput(v *ChangeMessageVisibilityBatchInput, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	if v.Entries != nil {
+		ok := object.Key("Entries")
+		if err := awsAwsjson10_serializeDocumentChangeMessageVisibilityBatchRequestEntryList(v.Entries, ok); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
+			return err
+		}
+	}
+
+	if v.QueueUrl != nil {
+<<<<<<< HEAD
+		objectKey := object.Key("QueueUrl")
+		objectKey.String(*v.QueueUrl)
+=======
+		ok := object.Key("QueueUrl")
+		ok.String(*v.QueueUrl)
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
+	}
+
+	return nil
+}
+
+<<<<<<< HEAD
 func awsAwsquery_serializeOpDocumentChangeMessageVisibilityInput(v *ChangeMessageVisibilityInput, value query.Value) error {
 	object := value.Object()
 	_ = object
@@ -1740,11 +2684,31 @@ func awsAwsquery_serializeOpDocumentChangeMessageVisibilityInput(v *ChangeMessag
 	{
 		objectKey := object.Key("VisibilityTimeout")
 		objectKey.Integer(v.VisibilityTimeout)
+=======
+func awsAwsjson10_serializeOpDocumentChangeMessageVisibilityInput(v *ChangeMessageVisibilityInput, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	if v.QueueUrl != nil {
+		ok := object.Key("QueueUrl")
+		ok.String(*v.QueueUrl)
+	}
+
+	if v.ReceiptHandle != nil {
+		ok := object.Key("ReceiptHandle")
+		ok.String(*v.ReceiptHandle)
+	}
+
+	{
+		ok := object.Key("VisibilityTimeout")
+		ok.Integer(v.VisibilityTimeout)
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	}
 
 	return nil
 }
 
+<<<<<<< HEAD
 func awsAwsquery_serializeOpDocumentCreateQueueInput(v *CreateQueueInput, value query.Value) error {
 	object := value.Object()
 	_ = object
@@ -1752,11 +2716,21 @@ func awsAwsquery_serializeOpDocumentCreateQueueInput(v *CreateQueueInput, value 
 	if v.Attributes != nil {
 		objectKey := object.FlatKey("Attribute")
 		if err := awsAwsquery_serializeDocumentQueueAttributeMap(v.Attributes, objectKey); err != nil {
+=======
+func awsAwsjson10_serializeOpDocumentCreateQueueInput(v *CreateQueueInput, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	if v.Attributes != nil {
+		ok := object.Key("Attributes")
+		if err := awsAwsjson10_serializeDocumentQueueAttributeMap(v.Attributes, ok); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 			return err
 		}
 	}
 
 	if v.QueueName != nil {
+<<<<<<< HEAD
 		objectKey := object.Key("QueueName")
 		objectKey.String(*v.QueueName)
 	}
@@ -1764,6 +2738,15 @@ func awsAwsquery_serializeOpDocumentCreateQueueInput(v *CreateQueueInput, value 
 	if v.Tags != nil {
 		objectKey := object.FlatKey("Tag")
 		if err := awsAwsquery_serializeDocumentTagMap(v.Tags, objectKey); err != nil {
+=======
+		ok := object.Key("QueueName")
+		ok.String(*v.QueueName)
+	}
+
+	if v.Tags != nil {
+		ok := object.Key("tags")
+		if err := awsAwsjson10_serializeDocumentTagMap(v.Tags, ok); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 			return err
 		}
 	}
@@ -1771,6 +2754,7 @@ func awsAwsquery_serializeOpDocumentCreateQueueInput(v *CreateQueueInput, value 
 	return nil
 }
 
+<<<<<<< HEAD
 func awsAwsquery_serializeOpDocumentDeleteMessageBatchInput(v *DeleteMessageBatchInput, value query.Value) error {
 	object := value.Object()
 	_ = object
@@ -1778,18 +2762,33 @@ func awsAwsquery_serializeOpDocumentDeleteMessageBatchInput(v *DeleteMessageBatc
 	if v.Entries != nil {
 		objectKey := object.FlatKey("DeleteMessageBatchRequestEntry")
 		if err := awsAwsquery_serializeDocumentDeleteMessageBatchRequestEntryList(v.Entries, objectKey); err != nil {
+=======
+func awsAwsjson10_serializeOpDocumentDeleteMessageBatchInput(v *DeleteMessageBatchInput, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	if v.Entries != nil {
+		ok := object.Key("Entries")
+		if err := awsAwsjson10_serializeDocumentDeleteMessageBatchRequestEntryList(v.Entries, ok); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 			return err
 		}
 	}
 
 	if v.QueueUrl != nil {
+<<<<<<< HEAD
 		objectKey := object.Key("QueueUrl")
 		objectKey.String(*v.QueueUrl)
+=======
+		ok := object.Key("QueueUrl")
+		ok.String(*v.QueueUrl)
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	}
 
 	return nil
 }
 
+<<<<<<< HEAD
 func awsAwsquery_serializeOpDocumentDeleteMessageInput(v *DeleteMessageInput, value query.Value) error {
 	object := value.Object()
 	_ = object
@@ -1802,11 +2801,26 @@ func awsAwsquery_serializeOpDocumentDeleteMessageInput(v *DeleteMessageInput, va
 	if v.ReceiptHandle != nil {
 		objectKey := object.Key("ReceiptHandle")
 		objectKey.String(*v.ReceiptHandle)
+=======
+func awsAwsjson10_serializeOpDocumentDeleteMessageInput(v *DeleteMessageInput, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	if v.QueueUrl != nil {
+		ok := object.Key("QueueUrl")
+		ok.String(*v.QueueUrl)
+	}
+
+	if v.ReceiptHandle != nil {
+		ok := object.Key("ReceiptHandle")
+		ok.String(*v.ReceiptHandle)
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	}
 
 	return nil
 }
 
+<<<<<<< HEAD
 func awsAwsquery_serializeOpDocumentDeleteQueueInput(v *DeleteQueueInput, value query.Value) error {
 	object := value.Object()
 	_ = object
@@ -1814,11 +2828,21 @@ func awsAwsquery_serializeOpDocumentDeleteQueueInput(v *DeleteQueueInput, value 
 	if v.QueueUrl != nil {
 		objectKey := object.Key("QueueUrl")
 		objectKey.String(*v.QueueUrl)
+=======
+func awsAwsjson10_serializeOpDocumentDeleteQueueInput(v *DeleteQueueInput, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	if v.QueueUrl != nil {
+		ok := object.Key("QueueUrl")
+		ok.String(*v.QueueUrl)
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	}
 
 	return nil
 }
 
+<<<<<<< HEAD
 func awsAwsquery_serializeOpDocumentGetQueueAttributesInput(v *GetQueueAttributesInput, value query.Value) error {
 	object := value.Object()
 	_ = object
@@ -1826,18 +2850,33 @@ func awsAwsquery_serializeOpDocumentGetQueueAttributesInput(v *GetQueueAttribute
 	if v.AttributeNames != nil {
 		objectKey := object.FlatKey("AttributeName")
 		if err := awsAwsquery_serializeDocumentAttributeNameList(v.AttributeNames, objectKey); err != nil {
+=======
+func awsAwsjson10_serializeOpDocumentGetQueueAttributesInput(v *GetQueueAttributesInput, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	if v.AttributeNames != nil {
+		ok := object.Key("AttributeNames")
+		if err := awsAwsjson10_serializeDocumentAttributeNameList(v.AttributeNames, ok); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 			return err
 		}
 	}
 
 	if v.QueueUrl != nil {
+<<<<<<< HEAD
 		objectKey := object.Key("QueueUrl")
 		objectKey.String(*v.QueueUrl)
+=======
+		ok := object.Key("QueueUrl")
+		ok.String(*v.QueueUrl)
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	}
 
 	return nil
 }
 
+<<<<<<< HEAD
 func awsAwsquery_serializeOpDocumentGetQueueUrlInput(v *GetQueueUrlInput, value query.Value) error {
 	object := value.Object()
 	_ = object
@@ -1850,11 +2889,26 @@ func awsAwsquery_serializeOpDocumentGetQueueUrlInput(v *GetQueueUrlInput, value 
 	if v.QueueOwnerAWSAccountId != nil {
 		objectKey := object.Key("QueueOwnerAWSAccountId")
 		objectKey.String(*v.QueueOwnerAWSAccountId)
+=======
+func awsAwsjson10_serializeOpDocumentGetQueueUrlInput(v *GetQueueUrlInput, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	if v.QueueName != nil {
+		ok := object.Key("QueueName")
+		ok.String(*v.QueueName)
+	}
+
+	if v.QueueOwnerAWSAccountId != nil {
+		ok := object.Key("QueueOwnerAWSAccountId")
+		ok.String(*v.QueueOwnerAWSAccountId)
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	}
 
 	return nil
 }
 
+<<<<<<< HEAD
 func awsAwsquery_serializeOpDocumentListDeadLetterSourceQueuesInput(v *ListDeadLetterSourceQueuesInput, value query.Value) error {
 	object := value.Object()
 	_ = object
@@ -1872,11 +2926,31 @@ func awsAwsquery_serializeOpDocumentListDeadLetterSourceQueuesInput(v *ListDeadL
 	if v.QueueUrl != nil {
 		objectKey := object.Key("QueueUrl")
 		objectKey.String(*v.QueueUrl)
+=======
+func awsAwsjson10_serializeOpDocumentListDeadLetterSourceQueuesInput(v *ListDeadLetterSourceQueuesInput, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	if v.MaxResults != nil {
+		ok := object.Key("MaxResults")
+		ok.Integer(*v.MaxResults)
+	}
+
+	if v.NextToken != nil {
+		ok := object.Key("NextToken")
+		ok.String(*v.NextToken)
+	}
+
+	if v.QueueUrl != nil {
+		ok := object.Key("QueueUrl")
+		ok.String(*v.QueueUrl)
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	}
 
 	return nil
 }
 
+<<<<<<< HEAD
 func awsAwsquery_serializeOpDocumentListQueuesInput(v *ListQueuesInput, value query.Value) error {
 	object := value.Object()
 	_ = object
@@ -1894,11 +2968,48 @@ func awsAwsquery_serializeOpDocumentListQueuesInput(v *ListQueuesInput, value qu
 	if v.QueueNamePrefix != nil {
 		objectKey := object.Key("QueueNamePrefix")
 		objectKey.String(*v.QueueNamePrefix)
+=======
+func awsAwsjson10_serializeOpDocumentListMessageMoveTasksInput(v *ListMessageMoveTasksInput, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	if v.MaxResults != nil {
+		ok := object.Key("MaxResults")
+		ok.Integer(*v.MaxResults)
+	}
+
+	if v.SourceArn != nil {
+		ok := object.Key("SourceArn")
+		ok.String(*v.SourceArn)
 	}
 
 	return nil
 }
 
+func awsAwsjson10_serializeOpDocumentListQueuesInput(v *ListQueuesInput, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	if v.MaxResults != nil {
+		ok := object.Key("MaxResults")
+		ok.Integer(*v.MaxResults)
+	}
+
+	if v.NextToken != nil {
+		ok := object.Key("NextToken")
+		ok.String(*v.NextToken)
+	}
+
+	if v.QueueNamePrefix != nil {
+		ok := object.Key("QueueNamePrefix")
+		ok.String(*v.QueueNamePrefix)
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
+	}
+
+	return nil
+}
+
+<<<<<<< HEAD
 func awsAwsquery_serializeOpDocumentListQueueTagsInput(v *ListQueueTagsInput, value query.Value) error {
 	object := value.Object()
 	_ = object
@@ -1906,11 +3017,21 @@ func awsAwsquery_serializeOpDocumentListQueueTagsInput(v *ListQueueTagsInput, va
 	if v.QueueUrl != nil {
 		objectKey := object.Key("QueueUrl")
 		objectKey.String(*v.QueueUrl)
+=======
+func awsAwsjson10_serializeOpDocumentListQueueTagsInput(v *ListQueueTagsInput, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	if v.QueueUrl != nil {
+		ok := object.Key("QueueUrl")
+		ok.String(*v.QueueUrl)
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	}
 
 	return nil
 }
 
+<<<<<<< HEAD
 func awsAwsquery_serializeOpDocumentPurgeQueueInput(v *PurgeQueueInput, value query.Value) error {
 	object := value.Object()
 	_ = object
@@ -1918,11 +3039,21 @@ func awsAwsquery_serializeOpDocumentPurgeQueueInput(v *PurgeQueueInput, value qu
 	if v.QueueUrl != nil {
 		objectKey := object.Key("QueueUrl")
 		objectKey.String(*v.QueueUrl)
+=======
+func awsAwsjson10_serializeOpDocumentPurgeQueueInput(v *PurgeQueueInput, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	if v.QueueUrl != nil {
+		ok := object.Key("QueueUrl")
+		ok.String(*v.QueueUrl)
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	}
 
 	return nil
 }
 
+<<<<<<< HEAD
 func awsAwsquery_serializeOpDocumentReceiveMessageInput(v *ReceiveMessageInput, value query.Value) error {
 	object := value.Object()
 	_ = object
@@ -1930,11 +3061,21 @@ func awsAwsquery_serializeOpDocumentReceiveMessageInput(v *ReceiveMessageInput, 
 	if v.AttributeNames != nil {
 		objectKey := object.FlatKey("AttributeName")
 		if err := awsAwsquery_serializeDocumentAttributeNameList(v.AttributeNames, objectKey); err != nil {
+=======
+func awsAwsjson10_serializeOpDocumentReceiveMessageInput(v *ReceiveMessageInput, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	if v.AttributeNames != nil {
+		ok := object.Key("AttributeNames")
+		if err := awsAwsjson10_serializeDocumentAttributeNameList(v.AttributeNames, ok); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 			return err
 		}
 	}
 
 	if v.MaxNumberOfMessages != 0 {
+<<<<<<< HEAD
 		objectKey := object.Key("MaxNumberOfMessages")
 		objectKey.Integer(v.MaxNumberOfMessages)
 	}
@@ -1942,11 +3083,21 @@ func awsAwsquery_serializeOpDocumentReceiveMessageInput(v *ReceiveMessageInput, 
 	if v.MessageAttributeNames != nil {
 		objectKey := object.FlatKey("MessageAttributeName")
 		if err := awsAwsquery_serializeDocumentMessageAttributeNameList(v.MessageAttributeNames, objectKey); err != nil {
+=======
+		ok := object.Key("MaxNumberOfMessages")
+		ok.Integer(v.MaxNumberOfMessages)
+	}
+
+	if v.MessageAttributeNames != nil {
+		ok := object.Key("MessageAttributeNames")
+		if err := awsAwsjson10_serializeDocumentMessageAttributeNameList(v.MessageAttributeNames, ok); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 			return err
 		}
 	}
 
 	if v.QueueUrl != nil {
+<<<<<<< HEAD
 		objectKey := object.Key("QueueUrl")
 		objectKey.String(*v.QueueUrl)
 	}
@@ -1964,11 +3115,31 @@ func awsAwsquery_serializeOpDocumentReceiveMessageInput(v *ReceiveMessageInput, 
 	if v.WaitTimeSeconds != 0 {
 		objectKey := object.Key("WaitTimeSeconds")
 		objectKey.Integer(v.WaitTimeSeconds)
+=======
+		ok := object.Key("QueueUrl")
+		ok.String(*v.QueueUrl)
+	}
+
+	if v.ReceiveRequestAttemptId != nil {
+		ok := object.Key("ReceiveRequestAttemptId")
+		ok.String(*v.ReceiveRequestAttemptId)
+	}
+
+	if v.VisibilityTimeout != 0 {
+		ok := object.Key("VisibilityTimeout")
+		ok.Integer(v.VisibilityTimeout)
+	}
+
+	if v.WaitTimeSeconds != 0 {
+		ok := object.Key("WaitTimeSeconds")
+		ok.Integer(v.WaitTimeSeconds)
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	}
 
 	return nil
 }
 
+<<<<<<< HEAD
 func awsAwsquery_serializeOpDocumentRemovePermissionInput(v *RemovePermissionInput, value query.Value) error {
 	object := value.Object()
 	_ = object
@@ -1981,11 +3152,26 @@ func awsAwsquery_serializeOpDocumentRemovePermissionInput(v *RemovePermissionInp
 	if v.QueueUrl != nil {
 		objectKey := object.Key("QueueUrl")
 		objectKey.String(*v.QueueUrl)
+=======
+func awsAwsjson10_serializeOpDocumentRemovePermissionInput(v *RemovePermissionInput, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	if v.Label != nil {
+		ok := object.Key("Label")
+		ok.String(*v.Label)
+	}
+
+	if v.QueueUrl != nil {
+		ok := object.Key("QueueUrl")
+		ok.String(*v.QueueUrl)
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	}
 
 	return nil
 }
 
+<<<<<<< HEAD
 func awsAwsquery_serializeOpDocumentSendMessageBatchInput(v *SendMessageBatchInput, value query.Value) error {
 	object := value.Object()
 	_ = object
@@ -1993,18 +3179,33 @@ func awsAwsquery_serializeOpDocumentSendMessageBatchInput(v *SendMessageBatchInp
 	if v.Entries != nil {
 		objectKey := object.FlatKey("SendMessageBatchRequestEntry")
 		if err := awsAwsquery_serializeDocumentSendMessageBatchRequestEntryList(v.Entries, objectKey); err != nil {
+=======
+func awsAwsjson10_serializeOpDocumentSendMessageBatchInput(v *SendMessageBatchInput, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	if v.Entries != nil {
+		ok := object.Key("Entries")
+		if err := awsAwsjson10_serializeDocumentSendMessageBatchRequestEntryList(v.Entries, ok); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 			return err
 		}
 	}
 
 	if v.QueueUrl != nil {
+<<<<<<< HEAD
 		objectKey := object.Key("QueueUrl")
 		objectKey.String(*v.QueueUrl)
+=======
+		ok := object.Key("QueueUrl")
+		ok.String(*v.QueueUrl)
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	}
 
 	return nil
 }
 
+<<<<<<< HEAD
 func awsAwsquery_serializeOpDocumentSendMessageInput(v *SendMessageInput, value query.Value) error {
 	object := value.Object()
 	_ = object
@@ -2017,11 +3218,26 @@ func awsAwsquery_serializeOpDocumentSendMessageInput(v *SendMessageInput, value 
 	if v.MessageAttributes != nil {
 		objectKey := object.FlatKey("MessageAttribute")
 		if err := awsAwsquery_serializeDocumentMessageBodyAttributeMap(v.MessageAttributes, objectKey); err != nil {
+=======
+func awsAwsjson10_serializeOpDocumentSendMessageInput(v *SendMessageInput, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	if v.DelaySeconds != 0 {
+		ok := object.Key("DelaySeconds")
+		ok.Integer(v.DelaySeconds)
+	}
+
+	if v.MessageAttributes != nil {
+		ok := object.Key("MessageAttributes")
+		if err := awsAwsjson10_serializeDocumentMessageBodyAttributeMap(v.MessageAttributes, ok); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 			return err
 		}
 	}
 
 	if v.MessageBody != nil {
+<<<<<<< HEAD
 		objectKey := object.Key("MessageBody")
 		objectKey.String(*v.MessageBody)
 	}
@@ -2039,18 +3255,43 @@ func awsAwsquery_serializeOpDocumentSendMessageInput(v *SendMessageInput, value 
 	if v.MessageSystemAttributes != nil {
 		objectKey := object.FlatKey("MessageSystemAttribute")
 		if err := awsAwsquery_serializeDocumentMessageBodySystemAttributeMap(v.MessageSystemAttributes, objectKey); err != nil {
+=======
+		ok := object.Key("MessageBody")
+		ok.String(*v.MessageBody)
+	}
+
+	if v.MessageDeduplicationId != nil {
+		ok := object.Key("MessageDeduplicationId")
+		ok.String(*v.MessageDeduplicationId)
+	}
+
+	if v.MessageGroupId != nil {
+		ok := object.Key("MessageGroupId")
+		ok.String(*v.MessageGroupId)
+	}
+
+	if v.MessageSystemAttributes != nil {
+		ok := object.Key("MessageSystemAttributes")
+		if err := awsAwsjson10_serializeDocumentMessageBodySystemAttributeMap(v.MessageSystemAttributes, ok); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 			return err
 		}
 	}
 
 	if v.QueueUrl != nil {
+<<<<<<< HEAD
 		objectKey := object.Key("QueueUrl")
 		objectKey.String(*v.QueueUrl)
+=======
+		ok := object.Key("QueueUrl")
+		ok.String(*v.QueueUrl)
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	}
 
 	return nil
 }
 
+<<<<<<< HEAD
 func awsAwsquery_serializeOpDocumentSetQueueAttributesInput(v *SetQueueAttributesInput, value query.Value) error {
 	object := value.Object()
 	_ = object
@@ -2058,18 +3299,33 @@ func awsAwsquery_serializeOpDocumentSetQueueAttributesInput(v *SetQueueAttribute
 	if v.Attributes != nil {
 		objectKey := object.FlatKey("Attribute")
 		if err := awsAwsquery_serializeDocumentQueueAttributeMap(v.Attributes, objectKey); err != nil {
+=======
+func awsAwsjson10_serializeOpDocumentSetQueueAttributesInput(v *SetQueueAttributesInput, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	if v.Attributes != nil {
+		ok := object.Key("Attributes")
+		if err := awsAwsjson10_serializeDocumentQueueAttributeMap(v.Attributes, ok); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 			return err
 		}
 	}
 
 	if v.QueueUrl != nil {
+<<<<<<< HEAD
 		objectKey := object.Key("QueueUrl")
 		objectKey.String(*v.QueueUrl)
+=======
+		ok := object.Key("QueueUrl")
+		ok.String(*v.QueueUrl)
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	}
 
 	return nil
 }
 
+<<<<<<< HEAD
 func awsAwsquery_serializeOpDocumentTagQueueInput(v *TagQueueInput, value query.Value) error {
 	object := value.Object()
 	_ = object
@@ -2082,6 +3338,42 @@ func awsAwsquery_serializeOpDocumentTagQueueInput(v *TagQueueInput, value query.
 	if v.Tags != nil {
 		objectKey := object.FlatKey("Tag")
 		if err := awsAwsquery_serializeDocumentTagMap(v.Tags, objectKey); err != nil {
+=======
+func awsAwsjson10_serializeOpDocumentStartMessageMoveTaskInput(v *StartMessageMoveTaskInput, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	if v.DestinationArn != nil {
+		ok := object.Key("DestinationArn")
+		ok.String(*v.DestinationArn)
+	}
+
+	if v.MaxNumberOfMessagesPerSecond != nil {
+		ok := object.Key("MaxNumberOfMessagesPerSecond")
+		ok.Integer(*v.MaxNumberOfMessagesPerSecond)
+	}
+
+	if v.SourceArn != nil {
+		ok := object.Key("SourceArn")
+		ok.String(*v.SourceArn)
+	}
+
+	return nil
+}
+
+func awsAwsjson10_serializeOpDocumentTagQueueInput(v *TagQueueInput, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	if v.QueueUrl != nil {
+		ok := object.Key("QueueUrl")
+		ok.String(*v.QueueUrl)
+	}
+
+	if v.Tags != nil {
+		ok := object.Key("Tags")
+		if err := awsAwsjson10_serializeDocumentTagMap(v.Tags, ok); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 			return err
 		}
 	}
@@ -2089,6 +3381,7 @@ func awsAwsquery_serializeOpDocumentTagQueueInput(v *TagQueueInput, value query.
 	return nil
 }
 
+<<<<<<< HEAD
 func awsAwsquery_serializeOpDocumentUntagQueueInput(v *UntagQueueInput, value query.Value) error {
 	object := value.Object()
 	_ = object
@@ -2101,6 +3394,20 @@ func awsAwsquery_serializeOpDocumentUntagQueueInput(v *UntagQueueInput, value qu
 	if v.TagKeys != nil {
 		objectKey := object.FlatKey("TagKey")
 		if err := awsAwsquery_serializeDocumentTagKeyList(v.TagKeys, objectKey); err != nil {
+=======
+func awsAwsjson10_serializeOpDocumentUntagQueueInput(v *UntagQueueInput, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	if v.QueueUrl != nil {
+		ok := object.Key("QueueUrl")
+		ok.String(*v.QueueUrl)
+	}
+
+	if v.TagKeys != nil {
+		ok := object.Key("TagKeys")
+		if err := awsAwsjson10_serializeDocumentTagKeyList(v.TagKeys, ok); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 			return err
 		}
 	}

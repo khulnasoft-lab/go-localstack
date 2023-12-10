@@ -4,6 +4,7 @@ package dynamodb
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
@@ -12,8 +13,7 @@ import (
 )
 
 // Describes auto scaling settings across replicas of the global table at once.
-// This operation only applies to Version 2019.11.21
-// (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/globaltables.V2.html)
+// This operation only applies to Version 2019.11.21 (Current) (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/globaltables.V2.html)
 // of global tables.
 func (c *Client) DescribeTableReplicaAutoScaling(ctx context.Context, params *DescribeTableReplicaAutoScalingInput, optFns ...func(*Options)) (*DescribeTableReplicaAutoScalingOutput, error) {
 	if params == nil {
@@ -52,12 +52,22 @@ type DescribeTableReplicaAutoScalingOutput struct {
 }
 
 func (c *Client) addOperationDescribeTableReplicaAutoScalingMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson10_serializeOpDescribeTableReplicaAutoScaling{}, middleware.After)
 	if err != nil {
 		return err
 	}
 	err = stack.Deserialize.Add(&awsAwsjson10_deserializeOpDescribeTableReplicaAutoScaling{}, middleware.After)
 	if err != nil {
+		return err
+	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "DescribeTableReplicaAutoScaling"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
@@ -78,16 +88,13 @@ func (c *Client) addOperationDescribeTableReplicaAutoScalingMiddlewares(stack *m
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -96,10 +103,16 @@ func (c *Client) addOperationDescribeTableReplicaAutoScalingMiddlewares(stack *m
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
 	if err = addOpDescribeTableReplicaAutoScalingValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDescribeTableReplicaAutoScaling(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -117,6 +130,9 @@ func (c *Client) addOperationDescribeTableReplicaAutoScalingMiddlewares(stack *m
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -124,7 +140,6 @@ func newServiceMetadataMiddleware_opDescribeTableReplicaAutoScaling(region strin
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "dynamodb",
 		OperationName: "DescribeTableReplicaAutoScaling",
 	}
 }

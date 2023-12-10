@@ -15,12 +15,12 @@ import (
 
 // The UpdateTimeToLive method enables or disables Time to Live (TTL) for the
 // specified table. A successful UpdateTimeToLive call returns the current
-// TimeToLiveSpecification. It can take up to one hour for the change to fully
+// TimeToLiveSpecification . It can take up to one hour for the change to fully
 // process. Any additional UpdateTimeToLive calls for the same table during this
-// one hour duration result in a ValidationException. TTL compares the current time
-// in epoch time format to the time stored in the TTL attribute of an item. If the
-// epoch time value stored in the attribute is less than the current time, the item
-// is marked as expired and subsequently deleted. The epoch time format is the
+// one hour duration result in a ValidationException . TTL compares the current
+// time in epoch time format to the time stored in the TTL attribute of an item. If
+// the epoch time value stored in the attribute is less than the current time, the
+// item is marked as expired and subsequently deleted. The epoch time format is the
 // number of seconds elapsed since 12:00:00 AM January 1, 1970 UTC. DynamoDB
 // deletes expired items on a best-effort basis to ensure availability of
 // throughput for other data operations. DynamoDB typically deletes expired items
@@ -29,9 +29,8 @@ import (
 // have expired and not been deleted will still show up in reads, queries, and
 // scans. As items are deleted, they are removed from any local secondary index and
 // global secondary index immediately in the same eventually consistent way as a
-// standard delete operation. For more information, see Time To Live
-// (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/TTL.html) in
-// the Amazon DynamoDB Developer Guide.
+// standard delete operation. For more information, see Time To Live (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/TTL.html)
+// in the Amazon DynamoDB Developer Guide.
 func (c *Client) UpdateTimeToLive(ctx context.Context, params *UpdateTimeToLiveInput, optFns ...func(*Options)) (*UpdateTimeToLiveOutput, error) {
 	if params == nil {
 		params = &UpdateTimeToLiveInput{}
@@ -55,8 +54,8 @@ type UpdateTimeToLiveInput struct {
 	// This member is required.
 	TableName *string
 
-	// Represents the settings used to enable or disable Time to Live for the specified
-	// table.
+	// Represents the settings used to enable or disable Time to Live for the
+	// specified table.
 	//
 	// This member is required.
 	TimeToLiveSpecification *types.TimeToLiveSpecification
@@ -76,12 +75,22 @@ type UpdateTimeToLiveOutput struct {
 }
 
 func (c *Client) addOperationUpdateTimeToLiveMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson10_serializeOpUpdateTimeToLive{}, middleware.After)
 	if err != nil {
 		return err
 	}
 	err = stack.Deserialize.Add(&awsAwsjson10_deserializeOpUpdateTimeToLive{}, middleware.After)
 	if err != nil {
+		return err
+	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "UpdateTimeToLive"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
@@ -102,16 +111,13 @@ func (c *Client) addOperationUpdateTimeToLiveMiddlewares(stack *middleware.Stack
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -123,10 +129,16 @@ func (c *Client) addOperationUpdateTimeToLiveMiddlewares(stack *middleware.Stack
 	if err = addOpUpdateTimeToLiveDiscoverEndpointMiddleware(stack, options, c); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
 	if err = addOpUpdateTimeToLiveValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opUpdateTimeToLive(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -144,11 +156,14 @@ func (c *Client) addOperationUpdateTimeToLiveMiddlewares(stack *middleware.Stack
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
 	return nil
 }
 
 func addOpUpdateTimeToLiveDiscoverEndpointMiddleware(stack *middleware.Stack, o Options, c *Client) error {
-	return stack.Serialize.Insert(&internalEndpointDiscovery.DiscoverEndpoint{
+	return stack.Finalize.Insert(&internalEndpointDiscovery.DiscoverEndpoint{
 		Options: []func(*internalEndpointDiscovery.DiscoverEndpointOptions){
 			func(opt *internalEndpointDiscovery.DiscoverEndpointOptions) {
 				opt.DisableHTTPS = o.EndpointOptions.DisableHTTPS
@@ -158,10 +173,12 @@ func addOpUpdateTimeToLiveDiscoverEndpointMiddleware(stack *middleware.Stack, o 
 		DiscoverOperation:            c.fetchOpUpdateTimeToLiveDiscoverEndpoint,
 		EndpointDiscoveryEnableState: o.EndpointDiscovery.EnableEndpointDiscovery,
 		EndpointDiscoveryRequired:    false,
-	}, "ResolveEndpoint", middleware.After)
+		Region:                       o.Region,
+	}, "ResolveEndpointV2", middleware.After)
 }
 
-func (c *Client) fetchOpUpdateTimeToLiveDiscoverEndpoint(ctx context.Context, input interface{}, optFns ...func(*internalEndpointDiscovery.DiscoverEndpointOptions)) (internalEndpointDiscovery.WeightedAddress, error) {
+func (c *Client) fetchOpUpdateTimeToLiveDiscoverEndpoint(ctx context.Context, region string, optFns ...func(*internalEndpointDiscovery.DiscoverEndpointOptions)) (internalEndpointDiscovery.WeightedAddress, error) {
+	input := getOperationInput(ctx)
 	in, ok := input.(*UpdateTimeToLiveInput)
 	if !ok {
 		return internalEndpointDiscovery.WeightedAddress{}, fmt.Errorf("unknown input type %T", input)
@@ -169,6 +186,7 @@ func (c *Client) fetchOpUpdateTimeToLiveDiscoverEndpoint(ctx context.Context, in
 	_ = in
 
 	identifierMap := make(map[string]string, 0)
+	identifierMap["sdk#Region"] = region
 
 	key := fmt.Sprintf("DynamoDB.%v", identifierMap)
 
@@ -183,7 +201,7 @@ func (c *Client) fetchOpUpdateTimeToLiveDiscoverEndpoint(ctx context.Context, in
 		fn(&opt)
 	}
 
-	go c.handleEndpointDiscoveryFromService(ctx, discoveryOperationInput, key, opt)
+	go c.handleEndpointDiscoveryFromService(ctx, discoveryOperationInput, region, key, opt)
 	return internalEndpointDiscovery.WeightedAddress{}, nil
 }
 
@@ -191,7 +209,6 @@ func newServiceMetadataMiddleware_opUpdateTimeToLive(region string) *awsmiddlewa
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "dynamodb",
 		OperationName: "UpdateTimeToLive",
 	}
 }

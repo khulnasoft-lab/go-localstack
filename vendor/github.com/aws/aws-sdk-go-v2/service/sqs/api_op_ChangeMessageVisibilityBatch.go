@@ -4,6 +4,10 @@ package sqs
 
 import (
 	"context"
+<<<<<<< HEAD
+=======
+	"fmt"
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
@@ -12,16 +16,24 @@ import (
 )
 
 // Changes the visibility timeout of multiple messages. This is a batch version of
+<<<<<<< HEAD
 // ChangeMessageVisibility. The result of the action on each message is reported
+=======
+// ChangeMessageVisibility . The result of the action on each message is reported
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 // individually in the response. You can send up to 10 ChangeMessageVisibility
 // requests with each ChangeMessageVisibilityBatch action. Because the batch
 // request can result in a combination of successful and unsuccessful actions, you
 // should check for batch errors even when the call returns an HTTP status code of
+<<<<<<< HEAD
 // 200. Some actions take lists of parameters. These lists are specified using the
 // param.n notation. Values of n are integers starting from 1. For example, a
 // parameter list with two elements looks like this: &AttributeName.1=first
 //
 // &AttributeName.2=second
+=======
+// 200 .
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 func (c *Client) ChangeMessageVisibilityBatch(ctx context.Context, params *ChangeMessageVisibilityBatchInput, optFns ...func(*Options)) (*ChangeMessageVisibilityBatchOutput, error) {
 	if params == nil {
 		params = &ChangeMessageVisibilityBatchInput{}
@@ -37,10 +49,16 @@ func (c *Client) ChangeMessageVisibilityBatch(ctx context.Context, params *Chang
 	return out, nil
 }
 
+<<<<<<< HEAD
 //
 type ChangeMessageVisibilityBatchInput struct {
 
 	// A list of receipt handles of the messages for which the visibility timeout must
+=======
+type ChangeMessageVisibilityBatchInput struct {
+
+	// Lists the receipt handles of the messages for which the visibility timeout must
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	// be changed.
 	//
 	// This member is required.
@@ -77,6 +95,7 @@ type ChangeMessageVisibilityBatchOutput struct {
 }
 
 func (c *Client) addOperationChangeMessageVisibilityBatchMiddlewares(stack *middleware.Stack, options Options) (err error) {
+<<<<<<< HEAD
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpChangeMessageVisibilityBatch{}, middleware.After)
 	if err != nil {
 		return err
@@ -85,6 +104,26 @@ func (c *Client) addOperationChangeMessageVisibilityBatchMiddlewares(stack *midd
 	if err != nil {
 		return err
 	}
+=======
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
+	err = stack.Serialize.Add(&awsAwsjson10_serializeOpChangeMessageVisibilityBatch{}, middleware.After)
+	if err != nil {
+		return err
+	}
+	err = stack.Deserialize.Add(&awsAwsjson10_deserializeOpChangeMessageVisibilityBatch{}, middleware.After)
+	if err != nil {
+		return err
+	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "ChangeMessageVisibilityBatch"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -103,16 +142,23 @@ func (c *Client) addOperationChangeMessageVisibilityBatchMiddlewares(stack *midd
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
+<<<<<<< HEAD
 	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
 		return err
 	}
+=======
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
 		return err
 	}
+<<<<<<< HEAD
 	if err = addClientUserAgent(stack); err != nil {
+=======
+	if err = addClientUserAgent(stack, options); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -121,12 +167,24 @@ func (c *Client) addOperationChangeMessageVisibilityBatchMiddlewares(stack *midd
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+<<<<<<< HEAD
+=======
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	if err = addOpChangeMessageVisibilityBatchValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opChangeMessageVisibilityBatch(options.Region), middleware.Before); err != nil {
 		return err
 	}
+<<<<<<< HEAD
+=======
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
+		return err
+	}
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
 		return err
 	}
@@ -136,6 +194,12 @@ func (c *Client) addOperationChangeMessageVisibilityBatchMiddlewares(stack *midd
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+<<<<<<< HEAD
+=======
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	return nil
 }
 
@@ -143,7 +207,10 @@ func newServiceMetadataMiddleware_opChangeMessageVisibilityBatch(region string) 
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
+<<<<<<< HEAD
 		SigningName:   "sqs",
+=======
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 		OperationName: "ChangeMessageVisibilityBatch",
 	}
 }

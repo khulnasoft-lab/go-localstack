@@ -17,8 +17,7 @@ import (
 // these user-defined tags so that they appear on the Billing and Cost Management
 // console for cost allocation tracking. You can call TagResource up to five times
 // per second, per account. For an overview on tagging DynamoDB resources, see
-// Tagging for DynamoDB
-// (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tagging.html)
+// Tagging for DynamoDB (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tagging.html)
 // in the Amazon DynamoDB Developer Guide.
 func (c *Client) TagResource(ctx context.Context, params *TagResourceInput, optFns ...func(*Options)) (*TagResourceOutput, error) {
 	if params == nil {
@@ -59,12 +58,22 @@ type TagResourceOutput struct {
 }
 
 func (c *Client) addOperationTagResourceMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson10_serializeOpTagResource{}, middleware.After)
 	if err != nil {
 		return err
 	}
 	err = stack.Deserialize.Add(&awsAwsjson10_deserializeOpTagResource{}, middleware.After)
 	if err != nil {
+		return err
+	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "TagResource"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
@@ -85,16 +94,13 @@ func (c *Client) addOperationTagResourceMiddlewares(stack *middleware.Stack, opt
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -106,10 +112,16 @@ func (c *Client) addOperationTagResourceMiddlewares(stack *middleware.Stack, opt
 	if err = addOpTagResourceDiscoverEndpointMiddleware(stack, options, c); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
 	if err = addOpTagResourceValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opTagResource(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -127,11 +139,14 @@ func (c *Client) addOperationTagResourceMiddlewares(stack *middleware.Stack, opt
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
 	return nil
 }
 
 func addOpTagResourceDiscoverEndpointMiddleware(stack *middleware.Stack, o Options, c *Client) error {
-	return stack.Serialize.Insert(&internalEndpointDiscovery.DiscoverEndpoint{
+	return stack.Finalize.Insert(&internalEndpointDiscovery.DiscoverEndpoint{
 		Options: []func(*internalEndpointDiscovery.DiscoverEndpointOptions){
 			func(opt *internalEndpointDiscovery.DiscoverEndpointOptions) {
 				opt.DisableHTTPS = o.EndpointOptions.DisableHTTPS
@@ -141,10 +156,12 @@ func addOpTagResourceDiscoverEndpointMiddleware(stack *middleware.Stack, o Optio
 		DiscoverOperation:            c.fetchOpTagResourceDiscoverEndpoint,
 		EndpointDiscoveryEnableState: o.EndpointDiscovery.EnableEndpointDiscovery,
 		EndpointDiscoveryRequired:    false,
-	}, "ResolveEndpoint", middleware.After)
+		Region:                       o.Region,
+	}, "ResolveEndpointV2", middleware.After)
 }
 
-func (c *Client) fetchOpTagResourceDiscoverEndpoint(ctx context.Context, input interface{}, optFns ...func(*internalEndpointDiscovery.DiscoverEndpointOptions)) (internalEndpointDiscovery.WeightedAddress, error) {
+func (c *Client) fetchOpTagResourceDiscoverEndpoint(ctx context.Context, region string, optFns ...func(*internalEndpointDiscovery.DiscoverEndpointOptions)) (internalEndpointDiscovery.WeightedAddress, error) {
+	input := getOperationInput(ctx)
 	in, ok := input.(*TagResourceInput)
 	if !ok {
 		return internalEndpointDiscovery.WeightedAddress{}, fmt.Errorf("unknown input type %T", input)
@@ -152,6 +169,7 @@ func (c *Client) fetchOpTagResourceDiscoverEndpoint(ctx context.Context, input i
 	_ = in
 
 	identifierMap := make(map[string]string, 0)
+	identifierMap["sdk#Region"] = region
 
 	key := fmt.Sprintf("DynamoDB.%v", identifierMap)
 
@@ -166,7 +184,7 @@ func (c *Client) fetchOpTagResourceDiscoverEndpoint(ctx context.Context, input i
 		fn(&opt)
 	}
 
-	go c.handleEndpointDiscoveryFromService(ctx, discoveryOperationInput, key, opt)
+	go c.handleEndpointDiscoveryFromService(ctx, discoveryOperationInput, region, key, opt)
 	return internalEndpointDiscovery.WeightedAddress{}, nil
 }
 
@@ -174,7 +192,6 @@ func newServiceMetadataMiddleware_opTagResource(region string) *awsmiddleware.Re
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "dynamodb",
 		OperationName: "TagResource",
 	}
 }

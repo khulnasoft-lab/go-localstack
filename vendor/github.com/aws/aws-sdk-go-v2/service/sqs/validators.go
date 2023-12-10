@@ -30,6 +30,29 @@ func (m *validateOpAddPermission) HandleInitialize(ctx context.Context, in middl
 	return next.HandleInitialize(ctx, in)
 }
 
+<<<<<<< HEAD
+=======
+type validateOpCancelMessageMoveTask struct {
+}
+
+func (*validateOpCancelMessageMoveTask) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpCancelMessageMoveTask) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*CancelMessageMoveTaskInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpCancelMessageMoveTaskInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 type validateOpChangeMessageVisibilityBatch struct {
 }
 
@@ -210,6 +233,29 @@ func (m *validateOpListDeadLetterSourceQueues) HandleInitialize(ctx context.Cont
 	return next.HandleInitialize(ctx, in)
 }
 
+<<<<<<< HEAD
+=======
+type validateOpListMessageMoveTasks struct {
+}
+
+func (*validateOpListMessageMoveTasks) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpListMessageMoveTasks) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*ListMessageMoveTasksInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpListMessageMoveTasksInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 type validateOpListQueueTags struct {
 }
 
@@ -350,6 +396,29 @@ func (m *validateOpSetQueueAttributes) HandleInitialize(ctx context.Context, in 
 	return next.HandleInitialize(ctx, in)
 }
 
+<<<<<<< HEAD
+=======
+type validateOpStartMessageMoveTask struct {
+}
+
+func (*validateOpStartMessageMoveTask) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpStartMessageMoveTask) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*StartMessageMoveTaskInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpStartMessageMoveTaskInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 type validateOpTagQueue struct {
 }
 
@@ -394,6 +463,13 @@ func addOpAddPermissionValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpAddPermission{}, middleware.After)
 }
 
+<<<<<<< HEAD
+=======
+func addOpCancelMessageMoveTaskValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpCancelMessageMoveTask{}, middleware.After)
+}
+
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 func addOpChangeMessageVisibilityBatchValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpChangeMessageVisibilityBatch{}, middleware.After)
 }
@@ -430,6 +506,13 @@ func addOpListDeadLetterSourceQueuesValidationMiddleware(stack *middleware.Stack
 	return stack.Initialize.Add(&validateOpListDeadLetterSourceQueues{}, middleware.After)
 }
 
+<<<<<<< HEAD
+=======
+func addOpListMessageMoveTasksValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpListMessageMoveTasks{}, middleware.After)
+}
+
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 func addOpListQueueTagsValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpListQueueTags{}, middleware.After)
 }
@@ -458,6 +541,13 @@ func addOpSetQueueAttributesValidationMiddleware(stack *middleware.Stack) error 
 	return stack.Initialize.Add(&validateOpSetQueueAttributes{}, middleware.After)
 }
 
+<<<<<<< HEAD
+=======
+func addOpStartMessageMoveTaskValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpStartMessageMoveTask{}, middleware.After)
+}
+
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 func addOpTagQueueValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpTagQueue{}, middleware.After)
 }
@@ -671,6 +761,24 @@ func validateOpAddPermissionInput(v *AddPermissionInput) error {
 	}
 }
 
+<<<<<<< HEAD
+=======
+func validateOpCancelMessageMoveTaskInput(v *CancelMessageMoveTaskInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "CancelMessageMoveTaskInput"}
+	if v.TaskHandle == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("TaskHandle"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 func validateOpChangeMessageVisibilityBatchInput(v *ChangeMessageVisibilityBatchInput) error {
 	if v == nil {
 		return nil
@@ -826,6 +934,24 @@ func validateOpListDeadLetterSourceQueuesInput(v *ListDeadLetterSourceQueuesInpu
 	}
 }
 
+<<<<<<< HEAD
+=======
+func validateOpListMessageMoveTasksInput(v *ListMessageMoveTasksInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "ListMessageMoveTasksInput"}
+	if v.SourceArn == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("SourceArn"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 func validateOpListQueueTagsInput(v *ListQueueTagsInput) error {
 	if v == nil {
 		return nil
@@ -957,6 +1083,24 @@ func validateOpSetQueueAttributesInput(v *SetQueueAttributesInput) error {
 	}
 }
 
+<<<<<<< HEAD
+=======
+func validateOpStartMessageMoveTaskInput(v *StartMessageMoveTaskInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "StartMessageMoveTaskInput"}
+	if v.SourceArn == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("SourceArn"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 func validateOpTagQueueInput(v *TagQueueInput) error {
 	if v == nil {
 		return nil

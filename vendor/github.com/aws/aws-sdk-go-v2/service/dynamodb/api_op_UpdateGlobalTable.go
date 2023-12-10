@@ -17,19 +17,25 @@ import (
 // already exist to be able to use this operation. Any replica to be added must be
 // empty, have the same name as the global table, have the same key schema, have
 // DynamoDB Streams enabled, and have the same provisioned and maximum write
-// capacity units. Although you can use UpdateGlobalTable to add replicas and
-// remove replicas in a single request, for simplicity we recommend that you issue
+// capacity units. This operation only applies to Version 2017.11.29 (Legacy) (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/globaltables.V1.html)
+// of global tables. We recommend using Version 2019.11.21 (Current) (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/globaltables.V2.html)
+// when creating new global tables, as it provides greater flexibility, higher
+// efficiency and consumes less write capacity than 2017.11.29 (Legacy). To
+// determine which version you are using, see Determining the version (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/globaltables.DetermineVersion.html)
+// . To update existing global tables from version 2017.11.29 (Legacy) to version
+// 2019.11.21 (Current), see Updating global tables (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/V2globaltables_upgrade.html)
+// . This operation only applies to Version 2017.11.29 (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/globaltables.V1.html)
+// of global tables. If you are using global tables Version 2019.11.21 (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/globaltables.V2.html)
+// you can use DescribeTable (https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_DescribeTable.html)
+// instead. Although you can use UpdateGlobalTable to add replicas and remove
+// replicas in a single request, for simplicity we recommend that you issue
 // separate requests for adding or removing replicas. If global secondary indexes
 // are specified, then the following conditions must also be met:
-//
-// * The global
-// secondary indexes must have the same name.
-//
-// * The global secondary indexes must
-// have the same hash key and sort key (if present).
-//
-// * The global secondary
-// indexes must have the same provisioned and maximum write capacity units.
+//   - The global secondary indexes must have the same name.
+//   - The global secondary indexes must have the same hash key and sort key (if
+//     present).
+//   - The global secondary indexes must have the same provisioned and maximum
+//     write capacity units.
 func (c *Client) UpdateGlobalTable(ctx context.Context, params *UpdateGlobalTableInput, optFns ...func(*Options)) (*UpdateGlobalTableOutput, error) {
 	if params == nil {
 		params = &UpdateGlobalTableInput{}
@@ -72,12 +78,22 @@ type UpdateGlobalTableOutput struct {
 }
 
 func (c *Client) addOperationUpdateGlobalTableMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson10_serializeOpUpdateGlobalTable{}, middleware.After)
 	if err != nil {
 		return err
 	}
 	err = stack.Deserialize.Add(&awsAwsjson10_deserializeOpUpdateGlobalTable{}, middleware.After)
 	if err != nil {
+		return err
+	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "UpdateGlobalTable"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
@@ -98,16 +114,13 @@ func (c *Client) addOperationUpdateGlobalTableMiddlewares(stack *middleware.Stac
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -119,10 +132,16 @@ func (c *Client) addOperationUpdateGlobalTableMiddlewares(stack *middleware.Stac
 	if err = addOpUpdateGlobalTableDiscoverEndpointMiddleware(stack, options, c); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
 	if err = addOpUpdateGlobalTableValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opUpdateGlobalTable(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -140,11 +159,14 @@ func (c *Client) addOperationUpdateGlobalTableMiddlewares(stack *middleware.Stac
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
 	return nil
 }
 
 func addOpUpdateGlobalTableDiscoverEndpointMiddleware(stack *middleware.Stack, o Options, c *Client) error {
-	return stack.Serialize.Insert(&internalEndpointDiscovery.DiscoverEndpoint{
+	return stack.Finalize.Insert(&internalEndpointDiscovery.DiscoverEndpoint{
 		Options: []func(*internalEndpointDiscovery.DiscoverEndpointOptions){
 			func(opt *internalEndpointDiscovery.DiscoverEndpointOptions) {
 				opt.DisableHTTPS = o.EndpointOptions.DisableHTTPS
@@ -154,10 +176,12 @@ func addOpUpdateGlobalTableDiscoverEndpointMiddleware(stack *middleware.Stack, o
 		DiscoverOperation:            c.fetchOpUpdateGlobalTableDiscoverEndpoint,
 		EndpointDiscoveryEnableState: o.EndpointDiscovery.EnableEndpointDiscovery,
 		EndpointDiscoveryRequired:    false,
-	}, "ResolveEndpoint", middleware.After)
+		Region:                       o.Region,
+	}, "ResolveEndpointV2", middleware.After)
 }
 
-func (c *Client) fetchOpUpdateGlobalTableDiscoverEndpoint(ctx context.Context, input interface{}, optFns ...func(*internalEndpointDiscovery.DiscoverEndpointOptions)) (internalEndpointDiscovery.WeightedAddress, error) {
+func (c *Client) fetchOpUpdateGlobalTableDiscoverEndpoint(ctx context.Context, region string, optFns ...func(*internalEndpointDiscovery.DiscoverEndpointOptions)) (internalEndpointDiscovery.WeightedAddress, error) {
+	input := getOperationInput(ctx)
 	in, ok := input.(*UpdateGlobalTableInput)
 	if !ok {
 		return internalEndpointDiscovery.WeightedAddress{}, fmt.Errorf("unknown input type %T", input)
@@ -165,6 +189,7 @@ func (c *Client) fetchOpUpdateGlobalTableDiscoverEndpoint(ctx context.Context, i
 	_ = in
 
 	identifierMap := make(map[string]string, 0)
+	identifierMap["sdk#Region"] = region
 
 	key := fmt.Sprintf("DynamoDB.%v", identifierMap)
 
@@ -179,7 +204,7 @@ func (c *Client) fetchOpUpdateGlobalTableDiscoverEndpoint(ctx context.Context, i
 		fn(&opt)
 	}
 
-	go c.handleEndpointDiscoveryFromService(ctx, discoveryOperationInput, key, opt)
+	go c.handleEndpointDiscoveryFromService(ctx, discoveryOperationInput, region, key, opt)
 	return internalEndpointDiscovery.WeightedAddress{}, nil
 }
 
@@ -187,7 +212,6 @@ func newServiceMetadataMiddleware_opUpdateGlobalTable(region string) *awsmiddlew
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "dynamodb",
 		OperationName: "UpdateGlobalTable",
 	}
 }

@@ -19,12 +19,13 @@ import (
 )
 
 // Returns information about the table, including the current status of the table,
-// when it was created, the primary key schema, and any indexes on the table. If
-// you issue a DescribeTable request immediately after a CreateTable request,
-// DynamoDB might return a ResourceNotFoundException. This is because DescribeTable
-// uses an eventually consistent query, and the metadata for your table might not
-// be available at that moment. Wait for a few seconds, and then try the
-// DescribeTable request again.
+// when it was created, the primary key schema, and any indexes on the table. This
+// operation only applies to Version 2019.11.21 (Current) (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/globaltables.V2.html)
+// of global tables. If you issue a DescribeTable request immediately after a
+// CreateTable request, DynamoDB might return a ResourceNotFoundException . This is
+// because DescribeTable uses an eventually consistent query, and the metadata for
+// your table might not be available at that moment. Wait for a few seconds, and
+// then try the DescribeTable request again.
 func (c *Client) DescribeTable(ctx context.Context, params *DescribeTableInput, optFns ...func(*Options)) (*DescribeTableOutput, error) {
 	if params == nil {
 		params = &DescribeTableInput{}
@@ -64,12 +65,22 @@ type DescribeTableOutput struct {
 }
 
 func (c *Client) addOperationDescribeTableMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson10_serializeOpDescribeTable{}, middleware.After)
 	if err != nil {
 		return err
 	}
 	err = stack.Deserialize.Add(&awsAwsjson10_deserializeOpDescribeTable{}, middleware.After)
 	if err != nil {
+		return err
+	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "DescribeTable"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
@@ -90,16 +101,13 @@ func (c *Client) addOperationDescribeTableMiddlewares(stack *middleware.Stack, o
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -111,10 +119,16 @@ func (c *Client) addOperationDescribeTableMiddlewares(stack *middleware.Stack, o
 	if err = addOpDescribeTableDiscoverEndpointMiddleware(stack, options, c); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
 	if err = addOpDescribeTableValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDescribeTable(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -132,11 +146,14 @@ func (c *Client) addOperationDescribeTableMiddlewares(stack *middleware.Stack, o
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
 	return nil
 }
 
 func addOpDescribeTableDiscoverEndpointMiddleware(stack *middleware.Stack, o Options, c *Client) error {
-	return stack.Serialize.Insert(&internalEndpointDiscovery.DiscoverEndpoint{
+	return stack.Finalize.Insert(&internalEndpointDiscovery.DiscoverEndpoint{
 		Options: []func(*internalEndpointDiscovery.DiscoverEndpointOptions){
 			func(opt *internalEndpointDiscovery.DiscoverEndpointOptions) {
 				opt.DisableHTTPS = o.EndpointOptions.DisableHTTPS
@@ -146,10 +163,12 @@ func addOpDescribeTableDiscoverEndpointMiddleware(stack *middleware.Stack, o Opt
 		DiscoverOperation:            c.fetchOpDescribeTableDiscoverEndpoint,
 		EndpointDiscoveryEnableState: o.EndpointDiscovery.EnableEndpointDiscovery,
 		EndpointDiscoveryRequired:    false,
-	}, "ResolveEndpoint", middleware.After)
+		Region:                       o.Region,
+	}, "ResolveEndpointV2", middleware.After)
 }
 
-func (c *Client) fetchOpDescribeTableDiscoverEndpoint(ctx context.Context, input interface{}, optFns ...func(*internalEndpointDiscovery.DiscoverEndpointOptions)) (internalEndpointDiscovery.WeightedAddress, error) {
+func (c *Client) fetchOpDescribeTableDiscoverEndpoint(ctx context.Context, region string, optFns ...func(*internalEndpointDiscovery.DiscoverEndpointOptions)) (internalEndpointDiscovery.WeightedAddress, error) {
+	input := getOperationInput(ctx)
 	in, ok := input.(*DescribeTableInput)
 	if !ok {
 		return internalEndpointDiscovery.WeightedAddress{}, fmt.Errorf("unknown input type %T", input)
@@ -157,6 +176,7 @@ func (c *Client) fetchOpDescribeTableDiscoverEndpoint(ctx context.Context, input
 	_ = in
 
 	identifierMap := make(map[string]string, 0)
+	identifierMap["sdk#Region"] = region
 
 	key := fmt.Sprintf("DynamoDB.%v", identifierMap)
 
@@ -171,7 +191,7 @@ func (c *Client) fetchOpDescribeTableDiscoverEndpoint(ctx context.Context, input
 		fn(&opt)
 	}
 
-	go c.handleEndpointDiscoveryFromService(ctx, discoveryOperationInput, key, opt)
+	go c.handleEndpointDiscoveryFromService(ctx, discoveryOperationInput, region, key, opt)
 	return internalEndpointDiscovery.WeightedAddress{}, nil
 }
 
@@ -195,9 +215,9 @@ type TableExistsWaiterOptions struct {
 	// MinDelay must resolve to a value lesser than or equal to the MaxDelay.
 	MinDelay time.Duration
 
-	// MaxDelay is the maximum amount of time to delay between retries. If unset or set
-	// to zero, TableExistsWaiter will use default max delay of 120 seconds. Note that
-	// MaxDelay must resolve to value greater than or equal to the MinDelay.
+	// MaxDelay is the maximum amount of time to delay between retries. If unset or
+	// set to zero, TableExistsWaiter will use default max delay of 120 seconds. Note
+	// that MaxDelay must resolve to value greater than or equal to the MinDelay.
 	MaxDelay time.Duration
 
 	// LogWaitAttempts is used to enable logging for waiter retry attempts
@@ -361,9 +381,9 @@ type TableNotExistsWaiterOptions struct {
 	// MinDelay must resolve to a value lesser than or equal to the MaxDelay.
 	MinDelay time.Duration
 
-	// MaxDelay is the maximum amount of time to delay between retries. If unset or set
-	// to zero, TableNotExistsWaiter will use default max delay of 120 seconds. Note
-	// that MaxDelay must resolve to value greater than or equal to the MinDelay.
+	// MaxDelay is the maximum amount of time to delay between retries. If unset or
+	// set to zero, TableNotExistsWaiter will use default max delay of 120 seconds.
+	// Note that MaxDelay must resolve to value greater than or equal to the MinDelay.
 	MaxDelay time.Duration
 
 	// LogWaitAttempts is used to enable logging for waiter retry attempts
@@ -502,7 +522,6 @@ func newServiceMetadataMiddleware_opDescribeTable(region string) *awsmiddleware.
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "dynamodb",
 		OperationName: "DescribeTable",
 	}
 }

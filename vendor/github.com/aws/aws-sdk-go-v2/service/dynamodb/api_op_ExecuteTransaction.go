@@ -17,8 +17,7 @@ import (
 // read statements or write statements, you cannot mix both in one transaction. The
 // EXISTS function is an exception and can be used to check the condition of
 // specific attributes of the item in a similar manner to ConditionCheck in the
-// TransactWriteItems
-// (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/transaction-apis.html#transaction-apis-txwriteitems)
+// TransactWriteItems (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/transaction-apis.html#transaction-apis-txwriteitems)
 // API.
 func (c *Client) ExecuteTransaction(ctx context.Context, params *ExecuteTransactionInput, optFns ...func(*Options)) (*ExecuteTransactionOutput, error) {
 	if params == nil {
@@ -48,10 +47,9 @@ type ExecuteTransactionInput struct {
 
 	// Determines the level of detail about either provisioned or on-demand throughput
 	// consumption that is returned in the response. For more information, see
-	// TransactGetItems
-	// (https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_TransactGetItems.html)
-	// and TransactWriteItems
-	// (https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_TransactWriteItems.html).
+	// TransactGetItems (https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_TransactGetItems.html)
+	// and TransactWriteItems (https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_TransactWriteItems.html)
+	// .
 	ReturnConsumedCapacity types.ReturnConsumedCapacity
 
 	noSmithyDocumentSerde
@@ -73,12 +71,22 @@ type ExecuteTransactionOutput struct {
 }
 
 func (c *Client) addOperationExecuteTransactionMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson10_serializeOpExecuteTransaction{}, middleware.After)
 	if err != nil {
 		return err
 	}
 	err = stack.Deserialize.Add(&awsAwsjson10_deserializeOpExecuteTransaction{}, middleware.After)
 	if err != nil {
+		return err
+	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "ExecuteTransaction"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
@@ -99,22 +107,22 @@ func (c *Client) addOperationExecuteTransactionMiddlewares(stack *middleware.Sta
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
 		return err
 	}
 	if err = addIdempotencyToken_opExecuteTransactionMiddleware(stack, options); err != nil {
@@ -124,6 +132,9 @@ func (c *Client) addOperationExecuteTransactionMiddlewares(stack *middleware.Sta
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opExecuteTransaction(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -139,6 +150,9 @@ func (c *Client) addOperationExecuteTransactionMiddlewares(stack *middleware.Sta
 		return err
 	}
 	if err = addRequestResponseLogging(stack, options); err != nil {
+		return err
+	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -181,7 +195,6 @@ func newServiceMetadataMiddleware_opExecuteTransaction(region string) *awsmiddle
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "dynamodb",
 		OperationName: "ExecuteTransaction",
 	}
 }

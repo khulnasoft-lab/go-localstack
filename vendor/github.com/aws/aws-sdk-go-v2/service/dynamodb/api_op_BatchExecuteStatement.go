@@ -4,6 +4,7 @@ package dynamodb
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
@@ -18,8 +19,7 @@ import (
 // consist of either read statements or write statements, you cannot mix both in
 // one batch. A HTTP 200 response does not mean that all statements in the
 // BatchExecuteStatement succeeded. Error details for individual statements can be
-// found under the Error
-// (https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_BatchStatementResponse.html#DDB-Type-BatchStatementResponse-Error)
+// found under the Error (https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_BatchStatementResponse.html#DDB-Type-BatchStatementResponse-Error)
 // field of the BatchStatementResponse for each statement.
 func (c *Client) BatchExecuteStatement(ctx context.Context, params *BatchExecuteStatementInput, optFns ...func(*Options)) (*BatchExecuteStatementOutput, error) {
 	if params == nil {
@@ -45,19 +45,14 @@ type BatchExecuteStatementInput struct {
 
 	// Determines the level of detail about either provisioned or on-demand throughput
 	// consumption that is returned in the response:
-	//
-	// * INDEXES - The response includes
-	// the aggregate ConsumedCapacity for the operation, together with ConsumedCapacity
-	// for each table and secondary index that was accessed. Note that some operations,
-	// such as GetItem and BatchGetItem, do not access any indexes at all. In these
-	// cases, specifying INDEXES will only return ConsumedCapacity information for
-	// table(s).
-	//
-	// * TOTAL - The response includes only the aggregate ConsumedCapacity
-	// for the operation.
-	//
-	// * NONE - No ConsumedCapacity details are included in the
-	// response.
+	//   - INDEXES - The response includes the aggregate ConsumedCapacity for the
+	//   operation, together with ConsumedCapacity for each table and secondary index
+	//   that was accessed. Note that some operations, such as GetItem and BatchGetItem
+	//   , do not access any indexes at all. In these cases, specifying INDEXES will
+	//   only return ConsumedCapacity information for table(s).
+	//   - TOTAL - The response includes only the aggregate ConsumedCapacity for the
+	//   operation.
+	//   - NONE - No ConsumedCapacity details are included in the response.
 	ReturnConsumedCapacity types.ReturnConsumedCapacity
 
 	noSmithyDocumentSerde
@@ -69,7 +64,8 @@ type BatchExecuteStatementOutput struct {
 	// ordered according to the ordering of the statements.
 	ConsumedCapacity []types.ConsumedCapacity
 
-	// The response to each PartiQL statement in the batch.
+	// The response to each PartiQL statement in the batch. The values of the list are
+	// ordered according to the ordering of the request statements.
 	Responses []types.BatchStatementResponse
 
 	// Metadata pertaining to the operation's result.
@@ -79,12 +75,22 @@ type BatchExecuteStatementOutput struct {
 }
 
 func (c *Client) addOperationBatchExecuteStatementMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson10_serializeOpBatchExecuteStatement{}, middleware.After)
 	if err != nil {
 		return err
 	}
 	err = stack.Deserialize.Add(&awsAwsjson10_deserializeOpBatchExecuteStatement{}, middleware.After)
 	if err != nil {
+		return err
+	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "BatchExecuteStatement"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
@@ -105,16 +111,13 @@ func (c *Client) addOperationBatchExecuteStatementMiddlewares(stack *middleware.
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -123,10 +126,16 @@ func (c *Client) addOperationBatchExecuteStatementMiddlewares(stack *middleware.
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
 	if err = addOpBatchExecuteStatementValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opBatchExecuteStatement(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -144,6 +153,9 @@ func (c *Client) addOperationBatchExecuteStatementMiddlewares(stack *middleware.
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -151,7 +163,6 @@ func newServiceMetadataMiddleware_opBatchExecuteStatement(region string) *awsmid
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "dynamodb",
 		OperationName: "BatchExecuteStatement",
 	}
 }

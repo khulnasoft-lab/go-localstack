@@ -37,9 +37,13 @@ import (
 	dynamo_types "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+<<<<<<< HEAD
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/client"
+=======
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	"github.com/docker/go-connections/nat"
+	"github.com/moby/moby/client"
 	"github.com/sirupsen/logrus"
 
 	"github.com/elgohr/go-localstack/internal"
@@ -47,6 +51,7 @@ import (
 
 // Instance manages the localstack
 type Instance struct {
+<<<<<<< HEAD
 	cli                 internal.DockerClient
 	log                 *logrus.Logger
 	portMapping         map[Service]string
@@ -58,6 +63,21 @@ type Instance struct {
 	timeout             time.Duration
 	volumeMounts        map[string]string
 	initCompleteLogLine string
+=======
+	cli internal.DockerClient
+	log *logrus.Logger
+
+	portMapping      map[Service]string
+	portMappingMutex sync.RWMutex
+
+	containerId      string
+	containerIdMutex sync.RWMutex
+
+	labels    map[string]string
+	version   string
+	fixedPort bool
+	timeout   time.Duration
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 }
 
 // InstanceOption is an option that controls the behaviour of
@@ -97,10 +117,16 @@ func WithTimeout(timeout time.Duration) InstanceOption {
 
 // WithClientFromEnv configures the instance to use a client that respects environment variables.
 func WithClientFromEnv() (InstanceOption, error) {
+	return WithClientFromEnvCtx(context.Background())
+}
+
+// WithClientFromEnvCtx like WithClientFromEnv but with context
+func WithClientFromEnvCtx(ctx context.Context) (InstanceOption, error) {
 	cli, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		return nil, fmt.Errorf("localstack: could not connect to docker: %w", err)
 	}
+	cli.NegotiateAPIVersion(ctx)
 	return func(i *Instance) {
 		i.cli = cli
 	}, nil
@@ -143,10 +169,16 @@ var portChangeIntroduced = internal.MustParseConstraint(">= 0.11.5")
 // NewInstance creates a new Instance
 // Fails when Docker is not reachable
 func NewInstance(opts ...InstanceOption) (*Instance, error) {
+	return NewInstanceCtx(context.Background(), opts...)
+}
+
+// NewInstanceCtx is NewInstance, but with Context
+func NewInstanceCtx(ctx context.Context, opts ...InstanceOption) (*Instance, error) {
 	cli, err := client.NewClientWithOpts()
 	if err != nil {
 		return nil, fmt.Errorf("localstack: could not connect to docker: %w", err)
 	}
+	cli.NegotiateAPIVersion(ctx)
 
 	i := Instance{
 		cli:         cli,
@@ -176,13 +208,12 @@ func NewInstance(opts ...InstanceOption) (*Instance, error) {
 }
 
 // Start starts the localstack
-// Deprecated: Use StartWithContext instead.
-func (i *Instance) Start() error {
-	return i.start(context.Background())
+func (i *Instance) Start(services ...Service) error {
+	return i.start(context.Background(), services...)
 }
 
 // StartWithContext starts the localstack and ends it when the context is done.
-// Use it to also start individual services, by default all are started.
+// Deprecated: Use Start/Stop instead, as shutdown is not reliable
 func (i *Instance) StartWithContext(ctx context.Context, services ...Service) error {
 	go func() {
 		<-ctx.Done()
@@ -194,7 +225,6 @@ func (i *Instance) StartWithContext(ctx context.Context, services ...Service) er
 }
 
 // Stop stops the localstack
-// Deprecated: Use StartWithContext instead.
 func (i *Instance) Stop() error {
 	return i.stop()
 }
@@ -204,9 +234,9 @@ func (i *Instance) Stop() error {
 func (i *Instance) Endpoint(service Service) string {
 	if i.getContainerId() != "" {
 		if i.fixedPort {
-			return i.portMapping[FixedPort]
+			return i.getPortMapping(FixedPort)
 		}
-		return i.portMapping[service]
+		return i.getPortMapping(service)
 	}
 	return ""
 }
@@ -216,9 +246,9 @@ func (i *Instance) Endpoint(service Service) string {
 func (i *Instance) EndpointV2(service Service) string {
 	if i.getContainerId() != "" {
 		if i.fixedPort {
-			return "http://" + i.portMapping[FixedPort]
+			return "http://" + i.getPortMapping(FixedPort)
 		}
-		return "http://" + i.portMapping[service]
+		return "http://" + i.getPortMapping(service)
 	}
 	return ""
 }
@@ -398,7 +428,7 @@ func (i *Instance) buildLocalImage(ctx context.Context) error {
 }
 
 func (i *Instance) mapPorts(ctx context.Context, services []Service, containerId string, try int) error {
-	if try > 5 {
+	if try > 10 {
 		return errors.New("localstack: could not get port from container")
 	}
 	startedContainer, err := i.cli.ContainerInspect(ctx, containerId)
@@ -409,17 +439,26 @@ func (i *Instance) mapPorts(ctx context.Context, services []Service, containerId
 	if i.fixedPort {
 		bindings := ports[nat.Port(FixedPort.Port)]
 		if len(bindings) == 0 {
-			time.Sleep(time.Second)
+			time.Sleep(300 * time.Millisecond)
 			return i.mapPorts(ctx, services, containerId, try+1)
 		}
+		i.portMappingMutex.Lock()
+		defer i.portMappingMutex.Unlock()
 		i.portMapping[FixedPort] = "localhost:" + bindings[0].HostPort
 	} else {
 		hasFilteredServices := len(services) > 0
+		i.portMappingMutex.Lock()
+		defer i.portMappingMutex.Unlock()
 		for service := range AvailableServices {
+			bindings := ports[nat.Port(service.Port)]
+			if len(bindings) == 0 {
+				time.Sleep(300 * time.Millisecond)
+				return i.mapPorts(ctx, services, containerId, try+1)
+			}
 			if hasFilteredServices && containsService(services, service) {
-				i.portMapping[service] = "localhost:" + ports[nat.Port(service.Port)][0].HostPort
+				i.portMapping[service] = "localhost:" + bindings[0].HostPort
 			} else if !hasFilteredServices {
-				i.portMapping[service] = "localhost:" + ports[nat.Port(service.Port)][0].HostPort
+				i.portMapping[service] = "localhost:" + bindings[0].HostPort
 			}
 		}
 	}
@@ -431,24 +470,24 @@ func (i *Instance) stop() error {
 	if containerId == "" {
 		return nil
 	}
-	timeout := time.Second
-	if err := i.cli.ContainerStop(context.Background(), containerId, &timeout); err != nil {
+	timeout := int(time.Second.Seconds())
+	if err := i.cli.ContainerStop(context.Background(), containerId, container.StopOptions{Timeout: &timeout}); err != nil {
 		return err
 	}
 	i.setContainerId("")
-	i.portMapping = map[Service]string{}
+	i.resetPortMapping()
 	return nil
 }
 
 func (i *Instance) waitToBeAvailable(ctx context.Context) error {
-	ticker := time.NewTicker(time.Second)
+	ticker := time.NewTicker(300 * time.Millisecond)
 	defer ticker.Stop()
 	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-ticker.C:
-			if err := i.isRunning(ctx); err != nil {
+			if err := i.isRunning(ctx, 0); err != nil {
 				return err
 			}
 			if err := i.checkAvailable(ctx); err != nil {
@@ -461,7 +500,10 @@ func (i *Instance) waitToBeAvailable(ctx context.Context) error {
 	}
 }
 
-func (i *Instance) isRunning(ctx context.Context) error {
+func (i *Instance) isRunning(ctx context.Context, try int) error {
+	if try > 10 {
+		return errors.New("localstack container has been stopped")
+	}
 	containers, err := i.cli.ContainerList(ctx, types.ContainerListOptions{})
 	if err != nil {
 		return err
@@ -471,7 +513,8 @@ func (i *Instance) isRunning(ctx context.Context) error {
 			return nil
 		}
 	}
-	return errors.New("localstack container has been stopped")
+	time.Sleep(300 * time.Millisecond)
+	return i.isRunning(ctx, try+1)
 }
 
 func (i *Instance) checkAvailable(ctx context.Context) error {
@@ -532,6 +575,18 @@ func (i *Instance) setContainerId(v string) {
 	i.containerIdMutex.Lock()
 	defer i.containerIdMutex.Unlock()
 	i.containerId = v
+}
+
+func (i *Instance) resetPortMapping() {
+	i.portMappingMutex.Lock()
+	defer i.portMappingMutex.Unlock()
+	i.portMapping = map[Service]string{}
+}
+
+func (i *Instance) getPortMapping(service Service) string {
+	i.portMappingMutex.RLock()
+	defer i.portMappingMutex.RUnlock()
+	return i.portMapping[service]
 }
 
 func shouldBeAdded(service Service) bool {

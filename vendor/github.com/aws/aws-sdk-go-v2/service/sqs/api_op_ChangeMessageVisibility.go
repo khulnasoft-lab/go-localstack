@@ -4,12 +4,17 @@ package sqs
 
 import (
 	"context"
+<<<<<<< HEAD
+=======
+	"fmt"
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
+<<<<<<< HEAD
 // Changes the visibility timeout of a specified message in a queue to a new value.
 // The default visibility timeout for a message is 30 seconds. The minimum is 0
 // seconds. The maximum is 12 hours. For more information, see Visibility Timeout
@@ -38,13 +43,45 @@ import (
 // are unrelated to the unlimited number of stored messages. For most standard
 // queues (depending on queue traffic and message backlog), there can be a maximum
 // of approximately 120,000 inflight messages (received from a queue by a consumer,
+=======
+// Changes the visibility timeout of a specified message in a queue to a new
+// value. The default visibility timeout for a message is 30 seconds. The minimum
+// is 0 seconds. The maximum is 12 hours. For more information, see Visibility
+// Timeout (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-visibility-timeout.html)
+// in the Amazon SQS Developer Guide. For example, if the default timeout for a
+// queue is 60 seconds, 15 seconds have elapsed since you received the message, and
+// you send a ChangeMessageVisibility call with VisibilityTimeout set to 10
+// seconds, the 10 seconds begin to count from the time that you make the
+// ChangeMessageVisibility call. Thus, any attempt to change the visibility timeout
+// or to delete that message 10 seconds after you initially change the visibility
+// timeout (a total of 25 seconds) might result in an error. An Amazon SQS message
+// has three basic states:
+//   - Sent to a queue by a producer.
+//   - Received from the queue by a consumer.
+//   - Deleted from the queue.
+//
+// A message is considered to be stored after it is sent to a queue by a producer,
+// but not yet received from the queue by a consumer (that is, between states 1 and
+// 2). There is no limit to the number of stored messages. A message is considered
+// to be in flight after it is received from a queue by a consumer, but not yet
+// deleted from the queue (that is, between states 2 and 3). There is a limit to
+// the number of in flight messages. Limits that apply to in flight messages are
+// unrelated to the unlimited number of stored messages. For most standard queues
+// (depending on queue traffic and message backlog), there can be a maximum of
+// approximately 120,000 in flight messages (received from a queue by a consumer,
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 // but not yet deleted from the queue). If you reach this limit, Amazon SQS returns
 // the OverLimit error message. To avoid reaching the limit, you should delete
 // messages from the queue after they're processed. You can also increase the
 // number of queues you use to process your messages. To request a limit increase,
+<<<<<<< HEAD
 // file a support request
 // (https://console.aws.amazon.com/support/home#/case/create?issueType=service-limit-increase&limitType=service-code-sqs).
 // For FIFO queues, there can be a maximum of 20,000 inflight messages (received
+=======
+// file a support request (https://console.aws.amazon.com/support/home#/case/create?issueType=service-limit-increase&limitType=service-code-sqs)
+// . For FIFO queues, there can be a maximum of 20,000 in flight messages (received
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 // from a queue by a consumer, but not yet deleted from the queue). If you reach
 // this limit, Amazon SQS returns no error messages. If you attempt to set the
 // VisibilityTimeout to a value greater than the maximum time left, Amazon SQS
@@ -78,14 +115,22 @@ type ChangeMessageVisibilityInput struct {
 	// This member is required.
 	QueueUrl *string
 
+<<<<<<< HEAD
 	// The receipt handle associated with the message whose visibility timeout is
+=======
+	// The receipt handle associated with the message, whose visibility timeout is
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	// changed. This parameter is returned by the ReceiveMessage action.
 	//
 	// This member is required.
 	ReceiptHandle *string
 
 	// The new value for the message's visibility timeout (in seconds). Values range: 0
+<<<<<<< HEAD
 	// to 43200. Maximum: 12 hours.
+=======
+	// to 43200 . Maximum: 12 hours.
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	//
 	// This member is required.
 	VisibilityTimeout int32
@@ -101,6 +146,7 @@ type ChangeMessageVisibilityOutput struct {
 }
 
 func (c *Client) addOperationChangeMessageVisibilityMiddlewares(stack *middleware.Stack, options Options) (err error) {
+<<<<<<< HEAD
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpChangeMessageVisibility{}, middleware.After)
 	if err != nil {
 		return err
@@ -109,6 +155,26 @@ func (c *Client) addOperationChangeMessageVisibilityMiddlewares(stack *middlewar
 	if err != nil {
 		return err
 	}
+=======
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
+	err = stack.Serialize.Add(&awsAwsjson10_serializeOpChangeMessageVisibility{}, middleware.After)
+	if err != nil {
+		return err
+	}
+	err = stack.Deserialize.Add(&awsAwsjson10_deserializeOpChangeMessageVisibility{}, middleware.After)
+	if err != nil {
+		return err
+	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "ChangeMessageVisibility"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -127,16 +193,23 @@ func (c *Client) addOperationChangeMessageVisibilityMiddlewares(stack *middlewar
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
+<<<<<<< HEAD
 	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
 		return err
 	}
+=======
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
 		return err
 	}
+<<<<<<< HEAD
 	if err = addClientUserAgent(stack); err != nil {
+=======
+	if err = addClientUserAgent(stack, options); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -145,12 +218,24 @@ func (c *Client) addOperationChangeMessageVisibilityMiddlewares(stack *middlewar
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+<<<<<<< HEAD
+=======
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	if err = addOpChangeMessageVisibilityValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opChangeMessageVisibility(options.Region), middleware.Before); err != nil {
 		return err
 	}
+<<<<<<< HEAD
+=======
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
+		return err
+	}
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
 		return err
 	}
@@ -160,6 +245,12 @@ func (c *Client) addOperationChangeMessageVisibilityMiddlewares(stack *middlewar
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+<<<<<<< HEAD
+=======
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	return nil
 }
 
@@ -167,7 +258,10 @@ func newServiceMetadataMiddleware_opChangeMessageVisibility(region string) *awsm
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
+<<<<<<< HEAD
 		SigningName:   "sqs",
+=======
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 		OperationName: "ChangeMessageVisibility",
 	}
 }

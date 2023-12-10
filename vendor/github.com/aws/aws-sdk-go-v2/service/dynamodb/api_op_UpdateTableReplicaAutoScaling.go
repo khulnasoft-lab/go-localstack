@@ -4,6 +4,7 @@ package dynamodb
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
@@ -11,9 +12,8 @@ import (
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Updates auto scaling settings on your global tables at once. This operation only
-// applies to Version 2019.11.21
-// (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/globaltables.V2.html)
+// Updates auto scaling settings on your global tables at once. This operation
+// only applies to Version 2019.11.21 (Current) (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/globaltables.V2.html)
 // of global tables.
 func (c *Client) UpdateTableReplicaAutoScaling(ctx context.Context, params *UpdateTableReplicaAutoScalingInput, optFns ...func(*Options)) (*UpdateTableReplicaAutoScalingOutput, error) {
 	if params == nil {
@@ -41,8 +41,8 @@ type UpdateTableReplicaAutoScalingInput struct {
 	// replica to be updated.
 	GlobalSecondaryIndexUpdates []types.GlobalSecondaryIndexAutoScalingUpdate
 
-	// Represents the auto scaling settings to be modified for a global table or global
-	// secondary index.
+	// Represents the auto scaling settings to be modified for a global table or
+	// global secondary index.
 	ProvisionedWriteCapacityAutoScalingUpdate *types.AutoScalingSettingsUpdate
 
 	// Represents the auto scaling settings of replicas of the table that will be
@@ -64,12 +64,22 @@ type UpdateTableReplicaAutoScalingOutput struct {
 }
 
 func (c *Client) addOperationUpdateTableReplicaAutoScalingMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson10_serializeOpUpdateTableReplicaAutoScaling{}, middleware.After)
 	if err != nil {
 		return err
 	}
 	err = stack.Deserialize.Add(&awsAwsjson10_deserializeOpUpdateTableReplicaAutoScaling{}, middleware.After)
 	if err != nil {
+		return err
+	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "UpdateTableReplicaAutoScaling"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
@@ -90,16 +100,13 @@ func (c *Client) addOperationUpdateTableReplicaAutoScalingMiddlewares(stack *mid
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -108,10 +115,16 @@ func (c *Client) addOperationUpdateTableReplicaAutoScalingMiddlewares(stack *mid
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
 	if err = addOpUpdateTableReplicaAutoScalingValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opUpdateTableReplicaAutoScaling(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -129,6 +142,9 @@ func (c *Client) addOperationUpdateTableReplicaAutoScalingMiddlewares(stack *mid
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -136,7 +152,6 @@ func newServiceMetadataMiddleware_opUpdateTableReplicaAutoScaling(region string)
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "dynamodb",
 		OperationName: "UpdateTableReplicaAutoScaling",
 	}
 }

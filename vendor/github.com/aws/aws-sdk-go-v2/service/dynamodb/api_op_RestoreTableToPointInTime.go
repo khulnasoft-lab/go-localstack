@@ -15,43 +15,27 @@ import (
 )
 
 // Restores the specified table to the specified point in time within
-// EarliestRestorableDateTime and LatestRestorableDateTime. You can restore your
+// EarliestRestorableDateTime and LatestRestorableDateTime . You can restore your
 // table to any point in time during the last 35 days. Any number of users can
 // execute up to 4 concurrent restores (any type of restore) in a given account.
 // When you restore using point in time recovery, DynamoDB restores your table data
 // to the state based on the selected date and time (day:hour:minute:second) to a
 // new table. Along with data, the following are also included on the new restored
 // table using point in time recovery:
+//   - Global secondary indexes (GSIs)
+//   - Local secondary indexes (LSIs)
+//   - Provisioned read and write capacity
+//   - Encryption settings All these settings come from the current settings of
+//     the source table at the time of restore.
 //
-// * Global secondary indexes (GSIs)
-//
-// * Local
-// secondary indexes (LSIs)
-//
-// * Provisioned read and write capacity
-//
-// * Encryption
-// settings All these settings come from the current settings of the source table
-// at the time of restore.
-//
-// You must manually set up the following on the restored
-// table:
-//
-// * Auto scaling policies
-//
-// * IAM policies
-//
-// * Amazon CloudWatch metrics and
-// alarms
-//
-// * Tags
-//
-// * Stream settings
-//
-// * Time to Live (TTL) settings
-//
-// * Point in
-// time recovery settings
+// You must manually set up the following on the restored table:
+//   - Auto scaling policies
+//   - IAM policies
+//   - Amazon CloudWatch metrics and alarms
+//   - Tags
+//   - Stream settings
+//   - Time to Live (TTL) settings
+//   - Point in time recovery settings
 func (c *Client) RestoreTableToPointInTime(ctx context.Context, params *RestoreTableToPointInTimeInput, optFns ...func(*Options)) (*RestoreTableToPointInTimeOutput, error) {
 	if params == nil {
 		params = &RestoreTableToPointInTimeInput{}
@@ -122,12 +106,22 @@ type RestoreTableToPointInTimeOutput struct {
 }
 
 func (c *Client) addOperationRestoreTableToPointInTimeMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson10_serializeOpRestoreTableToPointInTime{}, middleware.After)
 	if err != nil {
 		return err
 	}
 	err = stack.Deserialize.Add(&awsAwsjson10_deserializeOpRestoreTableToPointInTime{}, middleware.After)
 	if err != nil {
+		return err
+	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "RestoreTableToPointInTime"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
@@ -148,16 +142,13 @@ func (c *Client) addOperationRestoreTableToPointInTimeMiddlewares(stack *middlew
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -169,10 +160,16 @@ func (c *Client) addOperationRestoreTableToPointInTimeMiddlewares(stack *middlew
 	if err = addOpRestoreTableToPointInTimeDiscoverEndpointMiddleware(stack, options, c); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
 	if err = addOpRestoreTableToPointInTimeValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opRestoreTableToPointInTime(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -190,11 +187,14 @@ func (c *Client) addOperationRestoreTableToPointInTimeMiddlewares(stack *middlew
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
 	return nil
 }
 
 func addOpRestoreTableToPointInTimeDiscoverEndpointMiddleware(stack *middleware.Stack, o Options, c *Client) error {
-	return stack.Serialize.Insert(&internalEndpointDiscovery.DiscoverEndpoint{
+	return stack.Finalize.Insert(&internalEndpointDiscovery.DiscoverEndpoint{
 		Options: []func(*internalEndpointDiscovery.DiscoverEndpointOptions){
 			func(opt *internalEndpointDiscovery.DiscoverEndpointOptions) {
 				opt.DisableHTTPS = o.EndpointOptions.DisableHTTPS
@@ -204,10 +204,12 @@ func addOpRestoreTableToPointInTimeDiscoverEndpointMiddleware(stack *middleware.
 		DiscoverOperation:            c.fetchOpRestoreTableToPointInTimeDiscoverEndpoint,
 		EndpointDiscoveryEnableState: o.EndpointDiscovery.EnableEndpointDiscovery,
 		EndpointDiscoveryRequired:    false,
-	}, "ResolveEndpoint", middleware.After)
+		Region:                       o.Region,
+	}, "ResolveEndpointV2", middleware.After)
 }
 
-func (c *Client) fetchOpRestoreTableToPointInTimeDiscoverEndpoint(ctx context.Context, input interface{}, optFns ...func(*internalEndpointDiscovery.DiscoverEndpointOptions)) (internalEndpointDiscovery.WeightedAddress, error) {
+func (c *Client) fetchOpRestoreTableToPointInTimeDiscoverEndpoint(ctx context.Context, region string, optFns ...func(*internalEndpointDiscovery.DiscoverEndpointOptions)) (internalEndpointDiscovery.WeightedAddress, error) {
+	input := getOperationInput(ctx)
 	in, ok := input.(*RestoreTableToPointInTimeInput)
 	if !ok {
 		return internalEndpointDiscovery.WeightedAddress{}, fmt.Errorf("unknown input type %T", input)
@@ -215,6 +217,7 @@ func (c *Client) fetchOpRestoreTableToPointInTimeDiscoverEndpoint(ctx context.Co
 	_ = in
 
 	identifierMap := make(map[string]string, 0)
+	identifierMap["sdk#Region"] = region
 
 	key := fmt.Sprintf("DynamoDB.%v", identifierMap)
 
@@ -229,7 +232,7 @@ func (c *Client) fetchOpRestoreTableToPointInTimeDiscoverEndpoint(ctx context.Co
 		fn(&opt)
 	}
 
-	go c.handleEndpointDiscoveryFromService(ctx, discoveryOperationInput, key, opt)
+	go c.handleEndpointDiscoveryFromService(ctx, discoveryOperationInput, region, key, opt)
 	return internalEndpointDiscovery.WeightedAddress{}, nil
 }
 
@@ -237,7 +240,6 @@ func newServiceMetadataMiddleware_opRestoreTableToPointInTime(region string) *aw
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "dynamodb",
 		OperationName: "RestoreTableToPointInTime",
 	}
 }

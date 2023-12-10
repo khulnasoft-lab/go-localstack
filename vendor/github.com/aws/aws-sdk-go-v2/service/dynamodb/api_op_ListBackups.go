@@ -14,13 +14,16 @@ import (
 	"time"
 )
 
-// List backups associated with an Amazon Web Services account. To list backups for
-// a given table, specify TableName. ListBackups returns a paginated list of
+// List DynamoDB backups that are associated with an Amazon Web Services account
+// and weren't made with Amazon Web Services Backup. To list these backups for a
+// given table, specify TableName . ListBackups returns a paginated list of
 // results with at most 1 MB worth of items in a page. You can also specify a
 // maximum number of entries to be returned in a page. In the request, start time
 // is inclusive, but end time is exclusive. Note that these boundaries are for the
 // time at which the original backup was requested. You can call ListBackups a
-// maximum of five times per second.
+// maximum of five times per second. If you want to retrieve the complete list of
+// backups made with Amazon Web Services Backup, use the Amazon Web Services
+// Backup list API. (https://docs.aws.amazon.com/aws-backup/latest/devguide/API_ListBackupJobs.html)
 func (c *Client) ListBackups(ctx context.Context, params *ListBackupsInput, optFns ...func(*Options)) (*ListBackupsOutput, error) {
 	if params == nil {
 		params = &ListBackupsInput{}
@@ -40,14 +43,10 @@ type ListBackupsInput struct {
 
 	// The backups from the table specified by BackupType are listed. Where BackupType
 	// can be:
-	//
-	// * USER - On-demand backup created by you. (The default setting if no
-	// other backup types are specified.)
-	//
-	// * SYSTEM - On-demand backup automatically
-	// created by DynamoDB.
-	//
-	// * ALL - All types of on-demand backups (USER and SYSTEM).
+	//   - USER - On-demand backup created by you. (The default setting if no other
+	//   backup types are specified.)
+	//   - SYSTEM - On-demand backup automatically created by DynamoDB.
+	//   - ALL - All types of on-demand backups (USER and SYSTEM).
 	BackupType types.BackupTypeFilter
 
 	// LastEvaluatedBackupArn is the Amazon Resource Name (ARN) of the backup last
@@ -82,11 +81,11 @@ type ListBackupsOutput struct {
 	// The ARN of the backup last evaluated when the current page of results was
 	// returned, inclusive of the current page of results. This value may be specified
 	// as the ExclusiveStartBackupArn of a new ListBackups operation in order to fetch
-	// the next page of results. If LastEvaluatedBackupArn is empty, then the last page
-	// of results has been processed and there are no more results to be retrieved. If
-	// LastEvaluatedBackupArn is not empty, this may or may not indicate that there is
-	// more data to be returned. All results are guaranteed to have been returned if
-	// and only if no value for LastEvaluatedBackupArn is returned.
+	// the next page of results. If LastEvaluatedBackupArn is empty, then the last
+	// page of results has been processed and there are no more results to be
+	// retrieved. If LastEvaluatedBackupArn is not empty, this may or may not indicate
+	// that there is more data to be returned. All results are guaranteed to have been
+	// returned if and only if no value for LastEvaluatedBackupArn is returned.
 	LastEvaluatedBackupArn *string
 
 	// Metadata pertaining to the operation's result.
@@ -96,12 +95,22 @@ type ListBackupsOutput struct {
 }
 
 func (c *Client) addOperationListBackupsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson10_serializeOpListBackups{}, middleware.After)
 	if err != nil {
 		return err
 	}
 	err = stack.Deserialize.Add(&awsAwsjson10_deserializeOpListBackups{}, middleware.After)
 	if err != nil {
+		return err
+	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "ListBackups"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
@@ -122,16 +131,13 @@ func (c *Client) addOperationListBackupsMiddlewares(stack *middleware.Stack, opt
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -143,7 +149,13 @@ func (c *Client) addOperationListBackupsMiddlewares(stack *middleware.Stack, opt
 	if err = addOpListBackupsDiscoverEndpointMiddleware(stack, options, c); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opListBackups(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -161,11 +173,14 @@ func (c *Client) addOperationListBackupsMiddlewares(stack *middleware.Stack, opt
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
 	return nil
 }
 
 func addOpListBackupsDiscoverEndpointMiddleware(stack *middleware.Stack, o Options, c *Client) error {
-	return stack.Serialize.Insert(&internalEndpointDiscovery.DiscoverEndpoint{
+	return stack.Finalize.Insert(&internalEndpointDiscovery.DiscoverEndpoint{
 		Options: []func(*internalEndpointDiscovery.DiscoverEndpointOptions){
 			func(opt *internalEndpointDiscovery.DiscoverEndpointOptions) {
 				opt.DisableHTTPS = o.EndpointOptions.DisableHTTPS
@@ -175,10 +190,12 @@ func addOpListBackupsDiscoverEndpointMiddleware(stack *middleware.Stack, o Optio
 		DiscoverOperation:            c.fetchOpListBackupsDiscoverEndpoint,
 		EndpointDiscoveryEnableState: o.EndpointDiscovery.EnableEndpointDiscovery,
 		EndpointDiscoveryRequired:    false,
-	}, "ResolveEndpoint", middleware.After)
+		Region:                       o.Region,
+	}, "ResolveEndpointV2", middleware.After)
 }
 
-func (c *Client) fetchOpListBackupsDiscoverEndpoint(ctx context.Context, input interface{}, optFns ...func(*internalEndpointDiscovery.DiscoverEndpointOptions)) (internalEndpointDiscovery.WeightedAddress, error) {
+func (c *Client) fetchOpListBackupsDiscoverEndpoint(ctx context.Context, region string, optFns ...func(*internalEndpointDiscovery.DiscoverEndpointOptions)) (internalEndpointDiscovery.WeightedAddress, error) {
+	input := getOperationInput(ctx)
 	in, ok := input.(*ListBackupsInput)
 	if !ok {
 		return internalEndpointDiscovery.WeightedAddress{}, fmt.Errorf("unknown input type %T", input)
@@ -186,6 +203,7 @@ func (c *Client) fetchOpListBackupsDiscoverEndpoint(ctx context.Context, input i
 	_ = in
 
 	identifierMap := make(map[string]string, 0)
+	identifierMap["sdk#Region"] = region
 
 	key := fmt.Sprintf("DynamoDB.%v", identifierMap)
 
@@ -200,7 +218,7 @@ func (c *Client) fetchOpListBackupsDiscoverEndpoint(ctx context.Context, input i
 		fn(&opt)
 	}
 
-	go c.handleEndpointDiscoveryFromService(ctx, discoveryOperationInput, key, opt)
+	go c.handleEndpointDiscoveryFromService(ctx, discoveryOperationInput, region, key, opt)
 	return internalEndpointDiscovery.WeightedAddress{}, nil
 }
 
@@ -208,7 +226,6 @@ func newServiceMetadataMiddleware_opListBackups(region string) *awsmiddleware.Re
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "dynamodb",
 		OperationName: "ListBackups",
 	}
 }

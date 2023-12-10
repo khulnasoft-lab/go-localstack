@@ -14,14 +14,14 @@ import (
 )
 
 // Checks the status of continuous backups and point in time recovery on the
-// specified table. Continuous backups are ENABLED on all tables at table creation.
-// If point in time recovery is enabled, PointInTimeRecoveryStatus will be set to
-// ENABLED. After continuous backups and point in time recovery are enabled, you
-// can restore to any point in time within EarliestRestorableDateTime and
-// LatestRestorableDateTime. LatestRestorableDateTime is typically 5 minutes before
-// the current time. You can restore your table to any point in time during the
-// last 35 days. You can call DescribeContinuousBackups at a maximum rate of 10
-// times per second.
+// specified table. Continuous backups are ENABLED on all tables at table
+// creation. If point in time recovery is enabled, PointInTimeRecoveryStatus will
+// be set to ENABLED. After continuous backups and point in time recovery are
+// enabled, you can restore to any point in time within EarliestRestorableDateTime
+// and LatestRestorableDateTime . LatestRestorableDateTime is typically 5 minutes
+// before the current time. You can restore your table to any point in time during
+// the last 35 days. You can call DescribeContinuousBackups at a maximum rate of
+// 10 times per second.
 func (c *Client) DescribeContinuousBackups(ctx context.Context, params *DescribeContinuousBackupsInput, optFns ...func(*Options)) (*DescribeContinuousBackupsOutput, error) {
 	if params == nil {
 		params = &DescribeContinuousBackupsInput{}
@@ -61,12 +61,22 @@ type DescribeContinuousBackupsOutput struct {
 }
 
 func (c *Client) addOperationDescribeContinuousBackupsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson10_serializeOpDescribeContinuousBackups{}, middleware.After)
 	if err != nil {
 		return err
 	}
 	err = stack.Deserialize.Add(&awsAwsjson10_deserializeOpDescribeContinuousBackups{}, middleware.After)
 	if err != nil {
+		return err
+	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "DescribeContinuousBackups"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
@@ -87,16 +97,13 @@ func (c *Client) addOperationDescribeContinuousBackupsMiddlewares(stack *middlew
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -108,10 +115,16 @@ func (c *Client) addOperationDescribeContinuousBackupsMiddlewares(stack *middlew
 	if err = addOpDescribeContinuousBackupsDiscoverEndpointMiddleware(stack, options, c); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
 	if err = addOpDescribeContinuousBackupsValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDescribeContinuousBackups(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -129,11 +142,14 @@ func (c *Client) addOperationDescribeContinuousBackupsMiddlewares(stack *middlew
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
 	return nil
 }
 
 func addOpDescribeContinuousBackupsDiscoverEndpointMiddleware(stack *middleware.Stack, o Options, c *Client) error {
-	return stack.Serialize.Insert(&internalEndpointDiscovery.DiscoverEndpoint{
+	return stack.Finalize.Insert(&internalEndpointDiscovery.DiscoverEndpoint{
 		Options: []func(*internalEndpointDiscovery.DiscoverEndpointOptions){
 			func(opt *internalEndpointDiscovery.DiscoverEndpointOptions) {
 				opt.DisableHTTPS = o.EndpointOptions.DisableHTTPS
@@ -143,10 +159,12 @@ func addOpDescribeContinuousBackupsDiscoverEndpointMiddleware(stack *middleware.
 		DiscoverOperation:            c.fetchOpDescribeContinuousBackupsDiscoverEndpoint,
 		EndpointDiscoveryEnableState: o.EndpointDiscovery.EnableEndpointDiscovery,
 		EndpointDiscoveryRequired:    false,
-	}, "ResolveEndpoint", middleware.After)
+		Region:                       o.Region,
+	}, "ResolveEndpointV2", middleware.After)
 }
 
-func (c *Client) fetchOpDescribeContinuousBackupsDiscoverEndpoint(ctx context.Context, input interface{}, optFns ...func(*internalEndpointDiscovery.DiscoverEndpointOptions)) (internalEndpointDiscovery.WeightedAddress, error) {
+func (c *Client) fetchOpDescribeContinuousBackupsDiscoverEndpoint(ctx context.Context, region string, optFns ...func(*internalEndpointDiscovery.DiscoverEndpointOptions)) (internalEndpointDiscovery.WeightedAddress, error) {
+	input := getOperationInput(ctx)
 	in, ok := input.(*DescribeContinuousBackupsInput)
 	if !ok {
 		return internalEndpointDiscovery.WeightedAddress{}, fmt.Errorf("unknown input type %T", input)
@@ -154,6 +172,7 @@ func (c *Client) fetchOpDescribeContinuousBackupsDiscoverEndpoint(ctx context.Co
 	_ = in
 
 	identifierMap := make(map[string]string, 0)
+	identifierMap["sdk#Region"] = region
 
 	key := fmt.Sprintf("DynamoDB.%v", identifierMap)
 
@@ -168,7 +187,7 @@ func (c *Client) fetchOpDescribeContinuousBackupsDiscoverEndpoint(ctx context.Co
 		fn(&opt)
 	}
 
-	go c.handleEndpointDiscoveryFromService(ctx, discoveryOperationInput, key, opt)
+	go c.handleEndpointDiscoveryFromService(ctx, discoveryOperationInput, region, key, opt)
 	return internalEndpointDiscovery.WeightedAddress{}, nil
 }
 
@@ -176,7 +195,6 @@ func newServiceMetadataMiddleware_opDescribeContinuousBackups(region string) *aw
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "dynamodb",
 		OperationName: "DescribeContinuousBackups",
 	}
 }

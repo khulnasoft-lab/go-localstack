@@ -4,6 +4,10 @@ package sqs
 
 import (
 	"context"
+<<<<<<< HEAD
+=======
+	"fmt"
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
@@ -11,6 +15,7 @@ import (
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
+<<<<<<< HEAD
 // Delivers up to ten messages to the specified queue. This is a batch version of
 // SendMessage. For a FIFO queue, multiple messages within a single batch are
 // enqueued in the order they are sent. The result of sending each message is
@@ -30,6 +35,24 @@ import (
 // list with two elements looks like this: &AttributeName.1=first
 //
 // &AttributeName.2=second
+=======
+// You can use SendMessageBatch to send up to 10 messages to the specified queue
+// by assigning either identical or different values to each message (or by not
+// assigning values at all). This is a batch version of SendMessage . For a FIFO
+// queue, multiple messages within a single batch are enqueued in the order they
+// are sent. The result of sending each message is reported individually in the
+// response. Because the batch request can result in a combination of successful
+// and unsuccessful actions, you should check for batch errors even when the call
+// returns an HTTP status code of 200 . The maximum allowed individual message size
+// and the maximum total payload size (the sum of the individual lengths of all of
+// the batched messages) are both 256 KiB (262,144 bytes). A message can include
+// only XML, JSON, and unformatted text. The following Unicode characters are
+// allowed: #x9 | #xA | #xD | #x20 to #xD7FF | #xE000 to #xFFFD | #x10000 to
+// #x10FFFF Any characters not included in this list will be rejected. For more
+// information, see the W3C specification for characters (http://www.w3.org/TR/REC-xml/#charsets)
+// . If you don't specify the DelaySeconds parameter for an entry, Amazon SQS uses
+// the default value for the queue.
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 func (c *Client) SendMessageBatch(ctx context.Context, params *SendMessageBatchInput, optFns ...func(*Options)) (*SendMessageBatchOutput, error) {
 	if params == nil {
 		params = &SendMessageBatchInput{}
@@ -45,7 +68,10 @@ func (c *Client) SendMessageBatch(ctx context.Context, params *SendMessageBatchI
 	return out, nil
 }
 
+<<<<<<< HEAD
 //
+=======
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 type SendMessageBatchInput struct {
 
 	// A list of SendMessageBatchRequestEntry items.
@@ -67,8 +93,13 @@ type SendMessageBatchInput struct {
 // BatchResultErrorEntry tag if the message fails.
 type SendMessageBatchOutput struct {
 
+<<<<<<< HEAD
 	// A list of BatchResultErrorEntry items with error details about each message that
 	// can't be enqueued.
+=======
+	// A list of BatchResultErrorEntry items with error details about each message
+	// that can't be enqueued.
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	//
 	// This member is required.
 	Failed []types.BatchResultErrorEntry
@@ -85,6 +116,7 @@ type SendMessageBatchOutput struct {
 }
 
 func (c *Client) addOperationSendMessageBatchMiddlewares(stack *middleware.Stack, options Options) (err error) {
+<<<<<<< HEAD
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpSendMessageBatch{}, middleware.After)
 	if err != nil {
 		return err
@@ -93,6 +125,26 @@ func (c *Client) addOperationSendMessageBatchMiddlewares(stack *middleware.Stack
 	if err != nil {
 		return err
 	}
+=======
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
+	err = stack.Serialize.Add(&awsAwsjson10_serializeOpSendMessageBatch{}, middleware.After)
+	if err != nil {
+		return err
+	}
+	err = stack.Deserialize.Add(&awsAwsjson10_deserializeOpSendMessageBatch{}, middleware.After)
+	if err != nil {
+		return err
+	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "SendMessageBatch"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -111,16 +163,23 @@ func (c *Client) addOperationSendMessageBatchMiddlewares(stack *middleware.Stack
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
+<<<<<<< HEAD
 	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
 		return err
 	}
+=======
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
 		return err
 	}
+<<<<<<< HEAD
 	if err = addClientUserAgent(stack); err != nil {
+=======
+	if err = addClientUserAgent(stack, options); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -129,12 +188,27 @@ func (c *Client) addOperationSendMessageBatchMiddlewares(stack *middleware.Stack
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+<<<<<<< HEAD
+=======
+	if err = addValidateSendMessageBatchChecksum(stack, options); err != nil {
+		return err
+	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	if err = addOpSendMessageBatchValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opSendMessageBatch(options.Region), middleware.Before); err != nil {
 		return err
 	}
+<<<<<<< HEAD
+=======
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
+		return err
+	}
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
 		return err
 	}
@@ -144,6 +218,12 @@ func (c *Client) addOperationSendMessageBatchMiddlewares(stack *middleware.Stack
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+<<<<<<< HEAD
+=======
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	return nil
 }
 
@@ -151,7 +231,10 @@ func newServiceMetadataMiddleware_opSendMessageBatch(region string) *awsmiddlewa
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
+<<<<<<< HEAD
 		SigningName:   "sqs",
+=======
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 		OperationName: "SendMessageBatch",
 	}
 }

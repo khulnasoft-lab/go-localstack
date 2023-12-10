@@ -14,13 +14,14 @@ import (
 )
 
 // Returns information about the specified global table. This operation only
-// applies to Version 2017.11.29
-// (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/globaltables.V1.html)
-// of global tables. If you are using global tables Version 2019.11.21
-// (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/globaltables.V2.html)
-// you can use DescribeTable
-// (https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_DescribeTable.html)
-// instead.
+// applies to Version 2017.11.29 (Legacy) (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/globaltables.V1.html)
+// of global tables. We recommend using Version 2019.11.21 (Current) (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/globaltables.V2.html)
+// when creating new global tables, as it provides greater flexibility, higher
+// efficiency and consumes less write capacity than 2017.11.29 (Legacy). To
+// determine which version you are using, see Determining the version (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/globaltables.DetermineVersion.html)
+// . To update existing global tables from version 2017.11.29 (Legacy) to version
+// 2019.11.21 (Current), see Updating global tables (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/V2globaltables_upgrade.html)
+// .
 func (c *Client) DescribeGlobalTable(ctx context.Context, params *DescribeGlobalTableInput, optFns ...func(*Options)) (*DescribeGlobalTableOutput, error) {
 	if params == nil {
 		params = &DescribeGlobalTableInput{}
@@ -58,12 +59,22 @@ type DescribeGlobalTableOutput struct {
 }
 
 func (c *Client) addOperationDescribeGlobalTableMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson10_serializeOpDescribeGlobalTable{}, middleware.After)
 	if err != nil {
 		return err
 	}
 	err = stack.Deserialize.Add(&awsAwsjson10_deserializeOpDescribeGlobalTable{}, middleware.After)
 	if err != nil {
+		return err
+	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "DescribeGlobalTable"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
@@ -84,16 +95,13 @@ func (c *Client) addOperationDescribeGlobalTableMiddlewares(stack *middleware.St
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -105,10 +113,16 @@ func (c *Client) addOperationDescribeGlobalTableMiddlewares(stack *middleware.St
 	if err = addOpDescribeGlobalTableDiscoverEndpointMiddleware(stack, options, c); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
 	if err = addOpDescribeGlobalTableValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDescribeGlobalTable(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -126,11 +140,14 @@ func (c *Client) addOperationDescribeGlobalTableMiddlewares(stack *middleware.St
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
 	return nil
 }
 
 func addOpDescribeGlobalTableDiscoverEndpointMiddleware(stack *middleware.Stack, o Options, c *Client) error {
-	return stack.Serialize.Insert(&internalEndpointDiscovery.DiscoverEndpoint{
+	return stack.Finalize.Insert(&internalEndpointDiscovery.DiscoverEndpoint{
 		Options: []func(*internalEndpointDiscovery.DiscoverEndpointOptions){
 			func(opt *internalEndpointDiscovery.DiscoverEndpointOptions) {
 				opt.DisableHTTPS = o.EndpointOptions.DisableHTTPS
@@ -140,10 +157,12 @@ func addOpDescribeGlobalTableDiscoverEndpointMiddleware(stack *middleware.Stack,
 		DiscoverOperation:            c.fetchOpDescribeGlobalTableDiscoverEndpoint,
 		EndpointDiscoveryEnableState: o.EndpointDiscovery.EnableEndpointDiscovery,
 		EndpointDiscoveryRequired:    false,
-	}, "ResolveEndpoint", middleware.After)
+		Region:                       o.Region,
+	}, "ResolveEndpointV2", middleware.After)
 }
 
-func (c *Client) fetchOpDescribeGlobalTableDiscoverEndpoint(ctx context.Context, input interface{}, optFns ...func(*internalEndpointDiscovery.DiscoverEndpointOptions)) (internalEndpointDiscovery.WeightedAddress, error) {
+func (c *Client) fetchOpDescribeGlobalTableDiscoverEndpoint(ctx context.Context, region string, optFns ...func(*internalEndpointDiscovery.DiscoverEndpointOptions)) (internalEndpointDiscovery.WeightedAddress, error) {
+	input := getOperationInput(ctx)
 	in, ok := input.(*DescribeGlobalTableInput)
 	if !ok {
 		return internalEndpointDiscovery.WeightedAddress{}, fmt.Errorf("unknown input type %T", input)
@@ -151,6 +170,7 @@ func (c *Client) fetchOpDescribeGlobalTableDiscoverEndpoint(ctx context.Context,
 	_ = in
 
 	identifierMap := make(map[string]string, 0)
+	identifierMap["sdk#Region"] = region
 
 	key := fmt.Sprintf("DynamoDB.%v", identifierMap)
 
@@ -165,7 +185,7 @@ func (c *Client) fetchOpDescribeGlobalTableDiscoverEndpoint(ctx context.Context,
 		fn(&opt)
 	}
 
-	go c.handleEndpointDiscoveryFromService(ctx, discoveryOperationInput, key, opt)
+	go c.handleEndpointDiscoveryFromService(ctx, discoveryOperationInput, region, key, opt)
 	return internalEndpointDiscovery.WeightedAddress{}, nil
 }
 
@@ -173,7 +193,6 @@ func newServiceMetadataMiddleware_opDescribeGlobalTable(region string) *awsmiddl
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "dynamodb",
 		OperationName: "DescribeGlobalTable",
 	}
 }

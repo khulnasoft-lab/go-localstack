@@ -14,18 +14,20 @@ import (
 )
 
 // The DeleteTable operation deletes a table and all of its items. After a
-// DeleteTable request, the specified table is in the DELETING state until DynamoDB
-// completes the deletion. If the table is in the ACTIVE state, you can delete it.
-// If a table is in CREATING or UPDATING states, then DynamoDB returns a
-// ResourceInUseException. If the specified table does not exist, DynamoDB returns
-// a ResourceNotFoundException. If table is already in the DELETING state, no error
-// is returned. DynamoDB might continue to accept data read and write operations,
-// such as GetItem and PutItem, on a table in the DELETING state until the table
-// deletion is complete. When you delete a table, any indexes on that table are
-// also deleted. If you have DynamoDB Streams enabled on the table, then the
-// corresponding stream on that table goes into the DISABLED state, and the stream
-// is automatically deleted after 24 hours. Use the DescribeTable action to check
-// the status of the table.
+// DeleteTable request, the specified table is in the DELETING state until
+// DynamoDB completes the deletion. If the table is in the ACTIVE state, you can
+// delete it. If a table is in CREATING or UPDATING states, then DynamoDB returns
+// a ResourceInUseException . If the specified table does not exist, DynamoDB
+// returns a ResourceNotFoundException . If table is already in the DELETING
+// state, no error is returned. This operation only applies to Version 2019.11.21
+// (Current) (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/globaltables.V2.html)
+// of global tables. DynamoDB might continue to accept data read and write
+// operations, such as GetItem and PutItem , on a table in the DELETING state
+// until the table deletion is complete. When you delete a table, any indexes on
+// that table are also deleted. If you have DynamoDB Streams enabled on the table,
+// then the corresponding stream on that table goes into the DISABLED state, and
+// the stream is automatically deleted after 24 hours. Use the DescribeTable
+// action to check the status of the table.
 func (c *Client) DeleteTable(ctx context.Context, params *DeleteTableInput, optFns ...func(*Options)) (*DeleteTableOutput, error) {
 	if params == nil {
 		params = &DeleteTableInput{}
@@ -65,12 +67,22 @@ type DeleteTableOutput struct {
 }
 
 func (c *Client) addOperationDeleteTableMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson10_serializeOpDeleteTable{}, middleware.After)
 	if err != nil {
 		return err
 	}
 	err = stack.Deserialize.Add(&awsAwsjson10_deserializeOpDeleteTable{}, middleware.After)
 	if err != nil {
+		return err
+	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "DeleteTable"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
@@ -91,16 +103,13 @@ func (c *Client) addOperationDeleteTableMiddlewares(stack *middleware.Stack, opt
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -112,10 +121,16 @@ func (c *Client) addOperationDeleteTableMiddlewares(stack *middleware.Stack, opt
 	if err = addOpDeleteTableDiscoverEndpointMiddleware(stack, options, c); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
 	if err = addOpDeleteTableValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDeleteTable(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -133,11 +148,14 @@ func (c *Client) addOperationDeleteTableMiddlewares(stack *middleware.Stack, opt
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
 	return nil
 }
 
 func addOpDeleteTableDiscoverEndpointMiddleware(stack *middleware.Stack, o Options, c *Client) error {
-	return stack.Serialize.Insert(&internalEndpointDiscovery.DiscoverEndpoint{
+	return stack.Finalize.Insert(&internalEndpointDiscovery.DiscoverEndpoint{
 		Options: []func(*internalEndpointDiscovery.DiscoverEndpointOptions){
 			func(opt *internalEndpointDiscovery.DiscoverEndpointOptions) {
 				opt.DisableHTTPS = o.EndpointOptions.DisableHTTPS
@@ -147,10 +165,12 @@ func addOpDeleteTableDiscoverEndpointMiddleware(stack *middleware.Stack, o Optio
 		DiscoverOperation:            c.fetchOpDeleteTableDiscoverEndpoint,
 		EndpointDiscoveryEnableState: o.EndpointDiscovery.EnableEndpointDiscovery,
 		EndpointDiscoveryRequired:    false,
-	}, "ResolveEndpoint", middleware.After)
+		Region:                       o.Region,
+	}, "ResolveEndpointV2", middleware.After)
 }
 
-func (c *Client) fetchOpDeleteTableDiscoverEndpoint(ctx context.Context, input interface{}, optFns ...func(*internalEndpointDiscovery.DiscoverEndpointOptions)) (internalEndpointDiscovery.WeightedAddress, error) {
+func (c *Client) fetchOpDeleteTableDiscoverEndpoint(ctx context.Context, region string, optFns ...func(*internalEndpointDiscovery.DiscoverEndpointOptions)) (internalEndpointDiscovery.WeightedAddress, error) {
+	input := getOperationInput(ctx)
 	in, ok := input.(*DeleteTableInput)
 	if !ok {
 		return internalEndpointDiscovery.WeightedAddress{}, fmt.Errorf("unknown input type %T", input)
@@ -158,6 +178,7 @@ func (c *Client) fetchOpDeleteTableDiscoverEndpoint(ctx context.Context, input i
 	_ = in
 
 	identifierMap := make(map[string]string, 0)
+	identifierMap["sdk#Region"] = region
 
 	key := fmt.Sprintf("DynamoDB.%v", identifierMap)
 
@@ -172,7 +193,7 @@ func (c *Client) fetchOpDeleteTableDiscoverEndpoint(ctx context.Context, input i
 		fn(&opt)
 	}
 
-	go c.handleEndpointDiscoveryFromService(ctx, discoveryOperationInput, key, opt)
+	go c.handleEndpointDiscoveryFromService(ctx, discoveryOperationInput, region, key, opt)
 	return internalEndpointDiscovery.WeightedAddress{}, nil
 }
 
@@ -180,7 +201,6 @@ func newServiceMetadataMiddleware_opDeleteTable(region string) *awsmiddleware.Re
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "dynamodb",
 		OperationName: "DeleteTable",
 	}
 }

@@ -3,12 +3,21 @@
         "github.com/aws/aws-sdk-go-v2": "v1.4.0",
         "github.com/aws/aws-sdk-go-v2/internal/configsources": "v0.0.0-00010101000000-000000000000",
         "github.com/aws/aws-sdk-go-v2/internal/endpoints/v2": "v2.0.0-00010101000000-000000000000",
+<<<<<<< HEAD
         "github.com/aws/smithy-go": "v1.4.0"
+=======
+        "github.com/aws/smithy-go": "v1.4.0",
+        "github.com/google/go-cmp": "v0.5.4"
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
     },
     "files": [
         "api_client.go",
         "api_client_test.go",
         "api_op_AddPermission.go",
+<<<<<<< HEAD
+=======
+        "api_op_CancelMessageMoveTask.go",
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
         "api_op_ChangeMessageVisibility.go",
         "api_op_ChangeMessageVisibilityBatch.go",
         "api_op_CreateQueue.go",
@@ -18,6 +27,10 @@
         "api_op_GetQueueAttributes.go",
         "api_op_GetQueueUrl.go",
         "api_op_ListDeadLetterSourceQueues.go",
+<<<<<<< HEAD
+=======
+        "api_op_ListMessageMoveTasks.go",
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
         "api_op_ListQueueTags.go",
         "api_op_ListQueues.go",
         "api_op_PurgeQueue.go",
@@ -26,6 +39,7 @@
         "api_op_SendMessage.go",
         "api_op_SendMessageBatch.go",
         "api_op_SetQueueAttributes.go",
+<<<<<<< HEAD
         "api_op_TagQueue.go",
         "api_op_UntagQueue.go",
         "deserializers.go",
@@ -34,6 +48,21 @@
         "generated.json",
         "internal/endpoints/endpoints.go",
         "internal/endpoints/endpoints_test.go",
+=======
+        "api_op_StartMessageMoveTask.go",
+        "api_op_TagQueue.go",
+        "api_op_UntagQueue.go",
+        "auth.go",
+        "deserializers.go",
+        "doc.go",
+        "endpoints.go",
+        "endpoints_config_test.go",
+        "endpoints_test.go",
+        "generated.json",
+        "internal/endpoints/endpoints.go",
+        "internal/endpoints/endpoints_test.go",
+        "options.go",
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
         "protocol_test.go",
         "serializers.go",
         "types/enums.go",

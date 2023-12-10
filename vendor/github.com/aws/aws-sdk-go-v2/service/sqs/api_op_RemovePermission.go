@@ -4,6 +4,10 @@ package sqs
 
 import (
 	"context"
+<<<<<<< HEAD
+=======
+	"fmt"
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/smithy-go/middleware"
@@ -12,6 +16,7 @@ import (
 
 // Revokes any permissions in the queue policy that matches the specified Label
 // parameter.
+<<<<<<< HEAD
 //
 // * Only the owner of a queue can remove permissions from it.
 //
@@ -24,6 +29,15 @@ import (
 // * To remove the ability to change queue
 // permissions, you must deny permission to the AddPermission, RemovePermission,
 // and SetQueueAttributes actions in your IAM policy.
+=======
+//   - Only the owner of a queue can remove permissions from it.
+//   - Cross-account permissions don't apply to this action. For more information,
+//     see Grant cross-account permissions to a role and a username (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-customer-managed-policy-examples.html#grant-cross-account-permissions-to-role-and-user-name)
+//     in the Amazon SQS Developer Guide.
+//   - To remove the ability to change queue permissions, you must deny permission
+//     to the AddPermission , RemovePermission , and SetQueueAttributes actions in
+//     your IAM policy.
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 func (c *Client) RemovePermission(ctx context.Context, params *RemovePermissionInput, optFns ...func(*Options)) (*RemovePermissionOutput, error) {
 	if params == nil {
 		params = &RemovePermissionInput{}
@@ -39,7 +53,10 @@ func (c *Client) RemovePermission(ctx context.Context, params *RemovePermissionI
 	return out, nil
 }
 
+<<<<<<< HEAD
 //
+=======
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 type RemovePermissionInput struct {
 
 	// The identification of the permission to remove. This is the label added using
@@ -65,6 +82,7 @@ type RemovePermissionOutput struct {
 }
 
 func (c *Client) addOperationRemovePermissionMiddlewares(stack *middleware.Stack, options Options) (err error) {
+<<<<<<< HEAD
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpRemovePermission{}, middleware.After)
 	if err != nil {
 		return err
@@ -73,6 +91,26 @@ func (c *Client) addOperationRemovePermissionMiddlewares(stack *middleware.Stack
 	if err != nil {
 		return err
 	}
+=======
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
+	err = stack.Serialize.Add(&awsAwsjson10_serializeOpRemovePermission{}, middleware.After)
+	if err != nil {
+		return err
+	}
+	err = stack.Deserialize.Add(&awsAwsjson10_deserializeOpRemovePermission{}, middleware.After)
+	if err != nil {
+		return err
+	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "RemovePermission"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -91,16 +129,23 @@ func (c *Client) addOperationRemovePermissionMiddlewares(stack *middleware.Stack
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
+<<<<<<< HEAD
 	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
 		return err
 	}
+=======
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
 		return err
 	}
+<<<<<<< HEAD
 	if err = addClientUserAgent(stack); err != nil {
+=======
+	if err = addClientUserAgent(stack, options); err != nil {
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -109,12 +154,24 @@ func (c *Client) addOperationRemovePermissionMiddlewares(stack *middleware.Stack
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+<<<<<<< HEAD
+=======
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	if err = addOpRemovePermissionValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opRemovePermission(options.Region), middleware.Before); err != nil {
 		return err
 	}
+<<<<<<< HEAD
+=======
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
+		return err
+	}
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
 		return err
 	}
@@ -124,6 +181,12 @@ func (c *Client) addOperationRemovePermissionMiddlewares(stack *middleware.Stack
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+<<<<<<< HEAD
+=======
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	return nil
 }
 
@@ -131,7 +194,10 @@ func newServiceMetadataMiddleware_opRemovePermission(region string) *awsmiddlewa
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
+<<<<<<< HEAD
 		SigningName:   "sqs",
+=======
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 		OperationName: "RemovePermission",
 	}
 }

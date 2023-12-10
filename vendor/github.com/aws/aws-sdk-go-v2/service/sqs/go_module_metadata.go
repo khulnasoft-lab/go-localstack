@@ -3,4 +3,8 @@
 package sqs
 
 // goModuleVersion is the tagged release for this module
+<<<<<<< HEAD
 const goModuleVersion = "1.18.7"
+=======
+const goModuleVersion = "1.29.5"
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189

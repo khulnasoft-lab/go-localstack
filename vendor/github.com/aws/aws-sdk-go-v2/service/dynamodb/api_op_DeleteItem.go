@@ -16,12 +16,12 @@ import (
 // Deletes a single item in a table by primary key. You can perform a conditional
 // delete operation that deletes the item if it exists, or if it has an expected
 // attribute value. In addition to deleting an item, you can also return the item's
-// attribute values in the same operation, using the ReturnValues parameter. Unless
-// you specify conditions, the DeleteItem is an idempotent operation; running it
-// multiple times on the same item or attribute does not result in an error
-// response. Conditional deletes are useful for deleting items only if specific
-// conditions are met. If those conditions are met, DynamoDB performs the delete.
-// Otherwise, the item is not deleted.
+// attribute values in the same operation, using the ReturnValues parameter.
+// Unless you specify conditions, the DeleteItem is an idempotent operation;
+// running it multiple times on the same item or attribute does not result in an
+// error response. Conditional deletes are useful for deleting items only if
+// specific conditions are met. If those conditions are met, DynamoDB performs the
+// delete. Otherwise, the item is not deleted.
 func (c *Client) DeleteItem(ctx context.Context, params *DeleteItemInput, optFns ...func(*Options)) (*DeleteItemOutput, error) {
 	if params == nil {
 		params = &DeleteItemInput{}
@@ -40,8 +40,8 @@ func (c *Client) DeleteItem(ctx context.Context, params *DeleteItemInput, optFns
 // Represents the input of a DeleteItem operation.
 type DeleteItemInput struct {
 
-	// A map of attribute names to AttributeValue objects, representing the primary key
-	// of the item to delete. For the primary key, you must provide all of the
+	// A map of attribute names to AttributeValue objects, representing the primary
+	// key of the item to delete. For the primary key, you must provide all of the key
 	// attributes. For example, with a simple primary key, you only need to provide a
 	// value for the partition key. For a composite primary key, you must provide
 	// values for both the partition key and the sort key.
@@ -56,73 +56,45 @@ type DeleteItemInput struct {
 
 	// A condition that must be satisfied in order for a conditional DeleteItem to
 	// succeed. An expression can contain any of the following:
-	//
-	// * Functions:
-	// attribute_exists | attribute_not_exists | attribute_type | contains |
-	// begins_with | size These function names are case-sensitive.
-	//
-	// * Comparison
-	// operators: = | <> | < | > | <= | >= | BETWEEN | IN
-	//
-	// * Logical operators: AND |
-	// OR | NOT
-	//
-	// For more information about condition expressions, see Condition
-	// Expressions
-	// (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.SpecifyingConditions.html)
+	//   - Functions: attribute_exists | attribute_not_exists | attribute_type |
+	//   contains | begins_with | size These function names are case-sensitive.
+	//   - Comparison operators: = | <> | < | > | <= | >= | BETWEEN | IN
+	//   - Logical operators: AND | OR | NOT
+	// For more information about condition expressions, see Condition Expressions (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.SpecifyingConditions.html)
 	// in the Amazon DynamoDB Developer Guide.
 	ConditionExpression *string
 
 	// This is a legacy parameter. Use ConditionExpression instead. For more
-	// information, see ConditionalOperator
-	// (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/LegacyConditionalParameters.ConditionalOperator.html)
+	// information, see ConditionalOperator (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/LegacyConditionalParameters.ConditionalOperator.html)
 	// in the Amazon DynamoDB Developer Guide.
 	ConditionalOperator types.ConditionalOperator
 
 	// This is a legacy parameter. Use ConditionExpression instead. For more
-	// information, see Expected
-	// (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/LegacyConditionalParameters.Expected.html)
+	// information, see Expected (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/LegacyConditionalParameters.Expected.html)
 	// in the Amazon DynamoDB Developer Guide.
 	Expected map[string]types.ExpectedAttributeValue
 
 	// One or more substitution tokens for attribute names in an expression. The
-	// following are some use cases for using ExpressionAttributeNames:
-	//
-	// * To access an
-	// attribute whose name conflicts with a DynamoDB reserved word.
-	//
-	// * To create a
-	// placeholder for repeating occurrences of an attribute name in an expression.
-	//
-	// *
-	// To prevent special characters in an attribute name from being misinterpreted in
-	// an expression.
-	//
-	// Use the # character in an expression to dereference an attribute
-	// name. For example, consider the following attribute name:
-	//
-	// * Percentile
-	//
-	// The
-	// name of this attribute conflicts with a reserved word, so it cannot be used
+	// following are some use cases for using ExpressionAttributeNames :
+	//   - To access an attribute whose name conflicts with a DynamoDB reserved word.
+	//   - To create a placeholder for repeating occurrences of an attribute name in
+	//   an expression.
+	//   - To prevent special characters in an attribute name from being
+	//   misinterpreted in an expression.
+	// Use the # character in an expression to dereference an attribute name. For
+	// example, consider the following attribute name:
+	//   - Percentile
+	// The name of this attribute conflicts with a reserved word, so it cannot be used
 	// directly in an expression. (For the complete list of reserved words, see
-	// Reserved Words
-	// (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html)
+	// Reserved Words (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html)
 	// in the Amazon DynamoDB Developer Guide). To work around this, you could specify
-	// the following for ExpressionAttributeNames:
-	//
-	// * {"#P":"Percentile"}
-	//
-	// You could
-	// then use this substitution in an expression, as in this example:
-	//
-	// * #P =
-	// :val
-	//
-	// Tokens that begin with the : character are expression attribute values,
-	// which are placeholders for the actual value at runtime. For more information on
-	// expression attribute names, see Specifying Item Attributes
-	// (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.AccessingItemAttributes.html)
+	// the following for ExpressionAttributeNames :
+	//   - {"#P":"Percentile"}
+	// You could then use this substitution in an expression, as in this example:
+	//   - #P = :val
+	// Tokens that begin with the : character are expression attribute values, which
+	// are placeholders for the actual value at runtime. For more information on
+	// expression attribute names, see Specifying Item Attributes (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.AccessingItemAttributes.html)
 	// in the Amazon DynamoDB Developer Guide.
 	ExpressionAttributeNames map[string]string
 
@@ -134,50 +106,45 @@ type DeleteItemInput struct {
 	// ":avail":{"S":"Available"}, ":back":{"S":"Backordered"},
 	// ":disc":{"S":"Discontinued"} } You could then use these values in an expression,
 	// such as this: ProductStatus IN (:avail, :back, :disc) For more information on
-	// expression attribute values, see Condition Expressions
-	// (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.SpecifyingConditions.html)
+	// expression attribute values, see Condition Expressions (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.SpecifyingConditions.html)
 	// in the Amazon DynamoDB Developer Guide.
 	ExpressionAttributeValues map[string]types.AttributeValue
 
 	// Determines the level of detail about either provisioned or on-demand throughput
 	// consumption that is returned in the response:
-	//
-	// * INDEXES - The response includes
-	// the aggregate ConsumedCapacity for the operation, together with ConsumedCapacity
-	// for each table and secondary index that was accessed. Note that some operations,
-	// such as GetItem and BatchGetItem, do not access any indexes at all. In these
-	// cases, specifying INDEXES will only return ConsumedCapacity information for
-	// table(s).
-	//
-	// * TOTAL - The response includes only the aggregate ConsumedCapacity
-	// for the operation.
-	//
-	// * NONE - No ConsumedCapacity details are included in the
-	// response.
+	//   - INDEXES - The response includes the aggregate ConsumedCapacity for the
+	//   operation, together with ConsumedCapacity for each table and secondary index
+	//   that was accessed. Note that some operations, such as GetItem and BatchGetItem
+	//   , do not access any indexes at all. In these cases, specifying INDEXES will
+	//   only return ConsumedCapacity information for table(s).
+	//   - TOTAL - The response includes only the aggregate ConsumedCapacity for the
+	//   operation.
+	//   - NONE - No ConsumedCapacity details are included in the response.
 	ReturnConsumedCapacity types.ReturnConsumedCapacity
 
-	// Determines whether item collection metrics are returned. If set to SIZE, the
+	// Determines whether item collection metrics are returned. If set to SIZE , the
 	// response includes statistics about item collections, if any, that were modified
-	// during the operation are returned in the response. If set to NONE (the default),
-	// no statistics are returned.
+	// during the operation are returned in the response. If set to NONE (the
+	// default), no statistics are returned.
 	ReturnItemCollectionMetrics types.ReturnItemCollectionMetrics
 
 	// Use ReturnValues if you want to get the item attributes as they appeared before
-	// they were deleted. For DeleteItem, the valid values are:
-	//
-	// * NONE - If
-	// ReturnValues is not specified, or if its value is NONE, then nothing is
-	// returned. (This setting is the default for ReturnValues.)
-	//
-	// * ALL_OLD - The
-	// content of the old item is returned.
-	//
-	// There is no additional cost associated
+	// they were deleted. For DeleteItem , the valid values are:
+	//   - NONE - If ReturnValues is not specified, or if its value is NONE , then
+	//   nothing is returned. (This setting is the default for ReturnValues .)
+	//   - ALL_OLD - The content of the old item is returned.
+	// There is no additional cost associated with requesting a return value aside
+	// from the small network and processing overhead of receiving a larger response.
+	// No read capacity units are consumed. The ReturnValues parameter is used by
+	// several DynamoDB operations; however, DeleteItem does not recognize any values
+	// other than NONE or ALL_OLD .
+	ReturnValues types.ReturnValue
+
+	// An optional parameter that returns the item attributes for a DeleteItem
+	// operation that failed a condition check. There is no additional cost associated
 	// with requesting a return value aside from the small network and processing
 	// overhead of receiving a larger response. No read capacity units are consumed.
-	// The ReturnValues parameter is used by several DynamoDB operations; however,
-	// DeleteItem does not recognize any values other than NONE or ALL_OLD.
-	ReturnValues types.ReturnValue
+	ReturnValuesOnConditionCheckFailure types.ReturnValuesOnConditionCheckFailure
 
 	noSmithyDocumentSerde
 }
@@ -194,8 +161,7 @@ type DeleteItemOutput struct {
 	// includes the total provisioned throughput consumed, along with statistics for
 	// the table and any indexes involved in the operation. ConsumedCapacity is only
 	// returned if the ReturnConsumedCapacity parameter was specified. For more
-	// information, see Provisioned Mode
-	// (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ProvisionedThroughputIntro.html)
+	// information, see Provisioned Throughput (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ProvisionedThroughputIntro.html)
 	// in the Amazon DynamoDB Developer Guide.
 	ConsumedCapacity *types.ConsumedCapacity
 
@@ -204,19 +170,15 @@ type DeleteItemOutput struct {
 	// ReturnItemCollectionMetrics parameter was specified. If the table does not have
 	// any local secondary indexes, this information is not returned in the response.
 	// Each ItemCollectionMetrics element consists of:
-	//
-	// * ItemCollectionKey - The
-	// partition key value of the item collection. This is the same as the partition
-	// key value of the item itself.
-	//
-	// * SizeEstimateRangeGB - An estimate of item
-	// collection size, in gigabytes. This value is a two-element array containing a
-	// lower bound and an upper bound for the estimate. The estimate includes the size
-	// of all the items in the table, plus the size of all attributes projected into
-	// all of the local secondary indexes on that table. Use this estimate to measure
-	// whether a local secondary index is approaching its size limit. The estimate is
-	// subject to change over time; therefore, do not rely on the precision or accuracy
-	// of the estimate.
+	//   - ItemCollectionKey - The partition key value of the item collection. This is
+	//   the same as the partition key value of the item itself.
+	//   - SizeEstimateRangeGB - An estimate of item collection size, in gigabytes.
+	//   This value is a two-element array containing a lower bound and an upper bound
+	//   for the estimate. The estimate includes the size of all the items in the table,
+	//   plus the size of all attributes projected into all of the local secondary
+	//   indexes on that table. Use this estimate to measure whether a local secondary
+	//   index is approaching its size limit. The estimate is subject to change over
+	//   time; therefore, do not rely on the precision or accuracy of the estimate.
 	ItemCollectionMetrics *types.ItemCollectionMetrics
 
 	// Metadata pertaining to the operation's result.
@@ -226,12 +188,22 @@ type DeleteItemOutput struct {
 }
 
 func (c *Client) addOperationDeleteItemMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson10_serializeOpDeleteItem{}, middleware.After)
 	if err != nil {
 		return err
 	}
 	err = stack.Deserialize.Add(&awsAwsjson10_deserializeOpDeleteItem{}, middleware.After)
 	if err != nil {
+		return err
+	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "DeleteItem"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
@@ -252,16 +224,13 @@ func (c *Client) addOperationDeleteItemMiddlewares(stack *middleware.Stack, opti
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -273,10 +242,16 @@ func (c *Client) addOperationDeleteItemMiddlewares(stack *middleware.Stack, opti
 	if err = addOpDeleteItemDiscoverEndpointMiddleware(stack, options, c); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
 	if err = addOpDeleteItemValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDeleteItem(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -294,11 +269,14 @@ func (c *Client) addOperationDeleteItemMiddlewares(stack *middleware.Stack, opti
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
 	return nil
 }
 
 func addOpDeleteItemDiscoverEndpointMiddleware(stack *middleware.Stack, o Options, c *Client) error {
-	return stack.Serialize.Insert(&internalEndpointDiscovery.DiscoverEndpoint{
+	return stack.Finalize.Insert(&internalEndpointDiscovery.DiscoverEndpoint{
 		Options: []func(*internalEndpointDiscovery.DiscoverEndpointOptions){
 			func(opt *internalEndpointDiscovery.DiscoverEndpointOptions) {
 				opt.DisableHTTPS = o.EndpointOptions.DisableHTTPS
@@ -308,10 +286,12 @@ func addOpDeleteItemDiscoverEndpointMiddleware(stack *middleware.Stack, o Option
 		DiscoverOperation:            c.fetchOpDeleteItemDiscoverEndpoint,
 		EndpointDiscoveryEnableState: o.EndpointDiscovery.EnableEndpointDiscovery,
 		EndpointDiscoveryRequired:    false,
-	}, "ResolveEndpoint", middleware.After)
+		Region:                       o.Region,
+	}, "ResolveEndpointV2", middleware.After)
 }
 
-func (c *Client) fetchOpDeleteItemDiscoverEndpoint(ctx context.Context, input interface{}, optFns ...func(*internalEndpointDiscovery.DiscoverEndpointOptions)) (internalEndpointDiscovery.WeightedAddress, error) {
+func (c *Client) fetchOpDeleteItemDiscoverEndpoint(ctx context.Context, region string, optFns ...func(*internalEndpointDiscovery.DiscoverEndpointOptions)) (internalEndpointDiscovery.WeightedAddress, error) {
+	input := getOperationInput(ctx)
 	in, ok := input.(*DeleteItemInput)
 	if !ok {
 		return internalEndpointDiscovery.WeightedAddress{}, fmt.Errorf("unknown input type %T", input)
@@ -319,6 +299,7 @@ func (c *Client) fetchOpDeleteItemDiscoverEndpoint(ctx context.Context, input in
 	_ = in
 
 	identifierMap := make(map[string]string, 0)
+	identifierMap["sdk#Region"] = region
 
 	key := fmt.Sprintf("DynamoDB.%v", identifierMap)
 
@@ -333,7 +314,7 @@ func (c *Client) fetchOpDeleteItemDiscoverEndpoint(ctx context.Context, input in
 		fn(&opt)
 	}
 
-	go c.handleEndpointDiscoveryFromService(ctx, discoveryOperationInput, key, opt)
+	go c.handleEndpointDiscoveryFromService(ctx, discoveryOperationInput, region, key, opt)
 	return internalEndpointDiscovery.WeightedAddress{}, nil
 }
 
@@ -341,7 +322,6 @@ func newServiceMetadataMiddleware_opDeleteItem(region string) *awsmiddleware.Reg
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "dynamodb",
 		OperationName: "DeleteItem",
 	}
 }

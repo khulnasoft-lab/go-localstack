@@ -89,6 +89,7 @@ var partitionRegexp = struct {
 	AwsCn    *regexp.Regexp
 	AwsIso   *regexp.Regexp
 	AwsIsoB  *regexp.Regexp
+<<<<<<< HEAD
 	AwsUsGov *regexp.Regexp
 }{
 
@@ -96,6 +97,19 @@ var partitionRegexp = struct {
 	AwsCn:    regexp.MustCompile("^cn\\-\\w+\\-\\d+$"),
 	AwsIso:   regexp.MustCompile("^us\\-iso\\-\\w+\\-\\d+$"),
 	AwsIsoB:  regexp.MustCompile("^us\\-isob\\-\\w+\\-\\d+$"),
+=======
+	AwsIsoE  *regexp.Regexp
+	AwsIsoF  *regexp.Regexp
+	AwsUsGov *regexp.Regexp
+}{
+
+	Aws:      regexp.MustCompile("^(us|eu|ap|sa|ca|me|af|il)\\-\\w+\\-\\d+$"),
+	AwsCn:    regexp.MustCompile("^cn\\-\\w+\\-\\d+$"),
+	AwsIso:   regexp.MustCompile("^us\\-iso\\-\\w+\\-\\d+$"),
+	AwsIsoB:  regexp.MustCompile("^us\\-isob\\-\\w+\\-\\d+$"),
+	AwsIsoE:  regexp.MustCompile("^eu\\-isoe\\-\\w+\\-\\d+$"),
+	AwsIsoF:  regexp.MustCompile("^us\\-isof\\-\\w+\\-\\d+$"),
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 	AwsUsGov: regexp.MustCompile("^us\\-gov\\-\\w+\\-\\d+$"),
 }
 
@@ -154,6 +168,12 @@ var defaultPartitions = endpoints.Partitions{
 				Region: "ap-south-1",
 			}: endpoints.Endpoint{},
 			endpoints.EndpointKey{
+<<<<<<< HEAD
+=======
+				Region: "ap-south-2",
+			}: endpoints.Endpoint{},
+			endpoints.EndpointKey{
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 				Region: "ap-southeast-1",
 			}: endpoints.Endpoint{},
 			endpoints.EndpointKey{
@@ -163,18 +183,36 @@ var defaultPartitions = endpoints.Partitions{
 				Region: "ap-southeast-3",
 			}: endpoints.Endpoint{},
 			endpoints.EndpointKey{
+<<<<<<< HEAD
+=======
+				Region: "ap-southeast-4",
+			}: endpoints.Endpoint{},
+			endpoints.EndpointKey{
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 				Region: "ca-central-1",
 			}: endpoints.Endpoint{},
 			endpoints.EndpointKey{
 				Region: "eu-central-1",
 			}: endpoints.Endpoint{},
 			endpoints.EndpointKey{
+<<<<<<< HEAD
+=======
+				Region: "eu-central-2",
+			}: endpoints.Endpoint{},
+			endpoints.EndpointKey{
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 				Region: "eu-north-1",
 			}: endpoints.Endpoint{},
 			endpoints.EndpointKey{
 				Region: "eu-south-1",
 			}: endpoints.Endpoint{},
 			endpoints.EndpointKey{
+<<<<<<< HEAD
+=======
+				Region: "eu-south-2",
+			}: endpoints.Endpoint{},
+			endpoints.EndpointKey{
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 				Region: "eu-west-1",
 			}: endpoints.Endpoint{},
 			endpoints.EndpointKey{
@@ -220,6 +258,15 @@ var defaultPartitions = endpoints.Partitions{
 				Deprecated: aws.TrueTernary,
 			},
 			endpoints.EndpointKey{
+<<<<<<< HEAD
+=======
+				Region: "il-central-1",
+			}: endpoints.Endpoint{},
+			endpoints.EndpointKey{
+				Region: "me-central-1",
+			}: endpoints.Endpoint{},
+			endpoints.EndpointKey{
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 				Region: "me-south-1",
 			}: endpoints.Endpoint{},
 			endpoints.EndpointKey{
@@ -364,6 +411,51 @@ var defaultPartitions = endpoints.Partitions{
 		},
 	},
 	{
+<<<<<<< HEAD
+=======
+		ID: "aws-iso-e",
+		Defaults: map[endpoints.DefaultKey]endpoints.Endpoint{
+			{
+				Variant: endpoints.FIPSVariant,
+			}: {
+				Hostname:          "sqs-fips.{region}.cloud.adc-e.uk",
+				Protocols:         []string{"https"},
+				SignatureVersions: []string{"v4"},
+			},
+			{
+				Variant: 0,
+			}: {
+				Hostname:          "sqs.{region}.cloud.adc-e.uk",
+				Protocols:         []string{"https"},
+				SignatureVersions: []string{"v4"},
+			},
+		},
+		RegionRegex:    partitionRegexp.AwsIsoE,
+		IsRegionalized: true,
+	},
+	{
+		ID: "aws-iso-f",
+		Defaults: map[endpoints.DefaultKey]endpoints.Endpoint{
+			{
+				Variant: endpoints.FIPSVariant,
+			}: {
+				Hostname:          "sqs-fips.{region}.csp.hci.ic.gov",
+				Protocols:         []string{"https"},
+				SignatureVersions: []string{"v4"},
+			},
+			{
+				Variant: 0,
+			}: {
+				Hostname:          "sqs.{region}.csp.hci.ic.gov",
+				Protocols:         []string{"https"},
+				SignatureVersions: []string{"v4"},
+			},
+		},
+		RegionRegex:    partitionRegexp.AwsIsoF,
+		IsRegionalized: true,
+	},
+	{
+>>>>>>> 86c663831051e23db463a649fa07cd05ab84e189
 		ID: "aws-us-gov",
 		Defaults: map[endpoints.DefaultKey]endpoints.Endpoint{
 			{
