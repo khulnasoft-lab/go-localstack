@@ -409,7 +409,7 @@ func (i *Instance) buildLocalImage(ctx context.Context) error {
 }
 
 func (i *Instance) mapPorts(ctx context.Context, services []Service, containerId string, try int) error {
-	if try > 5 {
+	if try > 10 {
 		return errors.New("localstack: could not get port from container")
 	}
 	startedContainer, err := i.cli.ContainerInspect(ctx, containerId)
@@ -420,7 +420,7 @@ func (i *Instance) mapPorts(ctx context.Context, services []Service, containerId
 	if i.fixedPort {
 		bindings := ports[nat.Port(FixedPort.Port)]
 		if len(bindings) == 0 {
-			time.Sleep(time.Second)
+			time.Sleep(300 * time.Millisecond)
 			return i.mapPorts(ctx, services, containerId, try+1)
 		}
 		i.portMappingMutex.Lock()
@@ -431,10 +431,15 @@ func (i *Instance) mapPorts(ctx context.Context, services []Service, containerId
 		i.portMappingMutex.Lock()
 		defer i.portMappingMutex.Unlock()
 		for service := range AvailableServices {
+			bindings := ports[nat.Port(service.Port)]
+			if len(bindings) == 0 {
+				time.Sleep(300 * time.Millisecond)
+				return i.mapPorts(ctx, services, containerId, try+1)
+			}
 			if hasFilteredServices && containsService(services, service) {
-				i.portMapping[service] = "localhost:" + ports[nat.Port(service.Port)][0].HostPort
+				i.portMapping[service] = "localhost:" + bindings[0].HostPort
 			} else if !hasFilteredServices {
-				i.portMapping[service] = "localhost:" + ports[nat.Port(service.Port)][0].HostPort
+				i.portMapping[service] = "localhost:" + bindings[0].HostPort
 			}
 		}
 	}
@@ -456,14 +461,14 @@ func (i *Instance) stop() error {
 }
 
 func (i *Instance) waitToBeAvailable(ctx context.Context) error {
-	ticker := time.NewTicker(time.Second)
+	ticker := time.NewTicker(300 * time.Millisecond)
 	defer ticker.Stop()
 	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-ticker.C:
-			if err := i.isRunning(ctx); err != nil {
+			if err := i.isRunning(ctx, 0); err != nil {
 				return err
 			}
 			if err := i.checkAvailable(ctx); err != nil {
@@ -476,7 +481,10 @@ func (i *Instance) waitToBeAvailable(ctx context.Context) error {
 	}
 }
 
-func (i *Instance) isRunning(ctx context.Context) error {
+func (i *Instance) isRunning(ctx context.Context, try int) error {
+	if try > 10 {
+		return errors.New("localstack container has been stopped")
+	}
 	containers, err := i.cli.ContainerList(ctx, types.ContainerListOptions{})
 	if err != nil {
 		return err
@@ -486,7 +494,8 @@ func (i *Instance) isRunning(ctx context.Context) error {
 			return nil
 		}
 	}
-	return errors.New("localstack container has been stopped")
+	time.Sleep(300 * time.Millisecond)
+	return i.isRunning(ctx, try+1)
 }
 
 func (i *Instance) checkAvailable(ctx context.Context) error {
